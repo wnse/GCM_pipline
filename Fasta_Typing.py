@@ -114,7 +114,7 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
             for i in h.readlines():
                 try:
                     tmp = i.strip().split(r':')
-                    if not (tmp[0] == ''):
+                    if len(tmp)>1 and (not (tmp[0] == '')):
                         tmp[1] = re.sub('\t','',tmp[1])
                         key = re.sub(r'\(\S+\)', '', tmp[0]).lower().replace(' ', '_')
                         tmp_dict[key] = ':'.join(tmp[1:])

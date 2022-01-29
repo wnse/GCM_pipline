@@ -1,0 +1,13 @@
+{
+  "gene_info_summary": {
+    "total_gene_num": "4692.0",
+    "total_gene_len": "4318317.0",
+    "avg_gene_len": "920.3574168797954",
+    "avg_inter_len": "122.115515771526",
+    "partial_gene_ratio": "0.0223785166240409"
+  },
+  "gene_predicted_dir": "prodigal_dir",
+  "gene_len_dis_png": "prodigal_gene_len.png",
+  "vfdb_csv": "FactorAnno_VFs.csv",
+  "rgi_csv": "FactorAnno_rgi.csv"
+}

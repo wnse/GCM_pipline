@@ -1,0 +1,132 @@
+{
+  "tax_16S": [
+    {
+      "sseqid": "GCA_900456375.1_6",
+      "completness": "1.0",
+      "length": "1529",
+      "pident": "99.542",
+      "bitscore": "2785",
+      "species": "Salmonella enterica subsp. diarizonae",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCA_900635535.1_5",
+      "completness": "1.0006514657980456",
+      "length": "1536",
+      "pident": "99.349",
+      "bitscore": "2774",
+      "species": "Salmonella enterica subsp. salamae",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCA_001643395.1_16s",
+      "completness": "1.000654022236756",
+      "length": "1530",
+      "pident": "99.346",
+      "bitscore": "2769",
+      "species": "Salmonella enteritidis",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCM10008061_7",
+      "completness": "1.0",
+      "length": "1529",
+      "pident": "99.281",
+      "bitscore": "2763",
+      "species": "Salmonella enterica subsp. Enterica",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__"
+    },
+    {
+      "sseqid": "GCA_900456445.1_4",
+      "completness": "1.000652315720809",
+      "length": "1534",
+      "pident": "98.892",
+      "bitscore": "2734",
+      "species": "Salmonella enterica",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "Z47544.1_16s",
+      "completness": "1.000654022236756",
+      "length": "1530",
+      "pident": "98.889",
+      "bitscore": "2730",
+      "species": "Salmonella typhi",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "X80681.1_16s",
+      "completness": "1.0013097576948264",
+      "length": "1529",
+      "pident": "98.561",
+      "bitscore": "2712",
+      "species": "Salmonella typhimurium",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCA_900706745.1_1",
+      "completness": "1.0013071895424837",
+      "length": "1532",
+      "pident": "98.499",
+      "bitscore": "2697",
+      "species": "Salmonella enterica subsp. houtenae",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCA_900456865.1_1",
+      "completness": "1.0006535947712418",
+      "length": "1531",
+      "pident": "98.367",
+      "bitscore": "2686",
+      "species": "Salmonella enterica subsp. indica",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica"
+    },
+    {
+      "sseqid": "GCA_000759835.1_16s",
+      "completness": "1.0",
+      "length": "1529",
+      "pident": "98.3",
+      "bitscore": "2680",
+      "species": "Citrobacter sedlakii",
+      "lineage": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Citrobacter|s__Citrobacter sedlakii"
+    }
+  ],
+  "tax_genome": [
+    {
+      "reference": "GCA_900456445.1",
+      "mash_distance": "0.0133547",
+      "species_id": "Salmonella enterica",
+      "strain_id": "NCTC 12416",
+      "tax": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica",
+      "fastani": "98.4905",
+      "orthoani": "98.7226",
+      "oau": "98.728"
+    },
+    {
+      "reference": "GCA_001643395.1",
+      "mash_distance": "0.0137986",
+      "species_id": "Salmonella enteritidis",
+      "strain_id": "ATCC 13076",
+      "tax": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__Salmonella enterica",
+      "fastani": "98.5019",
+      "orthoani": "98.6658",
+      "oau": "98.6727"
+    },
+    {
+      "reference": "GCM10008061",
+      "mash_distance": "0.0188675",
+      "species_id": "Salmonella enterica subsp. Enterica",
+      "strain_id": "NCTC 7109",
+      "tax": "k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Enterobacterales|f__Enterobacteriaceae|g__Salmonella|s__",
+      "fastani": "97.9863",
+      "orthoani": "98.2516",
+      "oau": "98.2819"
+    }
+  ],
+  "tax_summary": {
+    "genus": "Salmonella",
+    "species": "Salmonella enterica",
+    "related_strain": "NCTC 12416",
+    "ANI": "98.4905"
+  }
+}

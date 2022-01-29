@@ -1,0 +1,119 @@
+{
+  "genomescope_kmer_png": "plot.png",
+  "genomescope_predict": {
+    "heterozygosity": "-0.0639231%--0.0404931%",
+    "genome_haploid_length": "4,868,228 bp-4,881,052 bp",
+    "genome_repeat_length": "-37,825 bp--37,925 bp",
+    "genome_unique_length": "4,906,053 bp-4,918,977 bp",
+    "model_fit": "92.4651%-92.929%",
+    "read_error_rate": "0.0196202%-0.0196202%"
+  },
+  "fastqc_info": [
+    {
+      "name": "10535.IS300_Clean.1",
+      "path": {
+        "fastqc_icon_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Icons/fastqc_icon.png",
+        "warning_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Icons/warning.png",
+        "error_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Icons/error.png",
+        "tick_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Icons/tick.png",
+        "per_base_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_base_quality.png",
+        "per_tile_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_tile_quality.png",
+        "per_sequence_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_sequence_quality.png",
+        "per_base_sequence_content_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_base_sequence_content.png",
+        "per_sequence_gc_content_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_sequence_gc_content.png",
+        "per_base_n_content_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/per_base_n_content.png",
+        "sequence_length_distribution_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/sequence_length_distribution.png",
+        "duplication_levels_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/duplication_levels.png",
+        "adapter_content_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/adapter_content.png",
+        "kmer_profiles_png": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/Images/kmer_profiles.png",
+        "summary_txt": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/summary.txt",
+        "fastqc_report_html": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/fastqc_report.html",
+        "fastqc_data_txt": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/fastqc_data.txt",
+        "fastqc_fo": "fastqc_unzip_dir/10535.IS300_Clean.1_fastqc/fastqc.fo"
+      },
+      "summary": {
+        "basic_statistics": "PASS",
+        "per_base_sequence_quality": "PASS",
+        "per_tile_sequence_quality": "PASS",
+        "per_sequence_quality_scores": "PASS",
+        "per_base_sequence_content": "PASS",
+        "per_sequence_gc_content": "WARN",
+        "per_base_n_content": "PASS",
+        "sequence_length_distribution": "PASS",
+        "sequence_duplication_levels": "PASS",
+        "overrepresented_sequences": "PASS",
+        "adapter_content": "PASS",
+        "kmer_content": "FAIL"
+      },
+      "raw_sta": {
+        "total_reads": "3816245",
+        "total_bases": "572436750",
+        "Q20": "1.0",
+        "Q30": "1.0",
+        "GC": "0.5278438237936331",
+        "average_length": "150.0"
+      },
+      "clean_sta": {
+        "total_reads": "3716394",
+        "total_bases": "538556413",
+        "Q20": "1.0",
+        "Q30": "1.0",
+        "GC": "0.5277512088598971",
+        "average_length": "144.91370209940067"
+      }
+    },
+    {
+      "name": "10535.IS300_Clean.2",
+      "path": {
+        "fastqc_icon_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Icons/fastqc_icon.png",
+        "warning_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Icons/warning.png",
+        "error_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Icons/error.png",
+        "tick_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Icons/tick.png",
+        "per_base_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_base_quality.png",
+        "per_tile_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_tile_quality.png",
+        "per_sequence_quality_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_sequence_quality.png",
+        "per_base_sequence_content_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_base_sequence_content.png",
+        "per_sequence_gc_content_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_sequence_gc_content.png",
+        "per_base_n_content_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/per_base_n_content.png",
+        "sequence_length_distribution_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/sequence_length_distribution.png",
+        "duplication_levels_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/duplication_levels.png",
+        "adapter_content_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/adapter_content.png",
+        "kmer_profiles_png": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/Images/kmer_profiles.png",
+        "summary_txt": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/summary.txt",
+        "fastqc_report_html": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/fastqc_report.html",
+        "fastqc_data_txt": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/fastqc_data.txt",
+        "fastqc_fo": "fastqc_unzip_dir/10535.IS300_Clean.2_fastqc/fastqc.fo"
+      },
+      "summary": {
+        "basic_statistics": "PASS",
+        "per_base_sequence_quality": "PASS",
+        "per_tile_sequence_quality": "WARN",
+        "per_sequence_quality_scores": "PASS",
+        "per_base_sequence_content": "PASS",
+        "per_sequence_gc_content": "WARN",
+        "per_base_n_content": "PASS",
+        "sequence_length_distribution": "PASS",
+        "sequence_duplication_levels": "PASS",
+        "overrepresented_sequences": "PASS",
+        "adapter_content": "PASS",
+        "kmer_content": "FAIL"
+      },
+      "raw_sta": {
+        "total_reads": "3816245",
+        "total_bases": "572436750",
+        "Q20": "1.0",
+        "Q30": "1.0",
+        "GC": "0.5278476914698436",
+        "average_length": "150.0"
+      },
+      "clean_sta": {
+        "total_reads": "3716394",
+        "total_bases": "511065970",
+        "Q20": "1.0",
+        "Q30": "1.0",
+        "GC": "0.5273613345846525",
+        "average_length": "137.51662767725918"
+      }
+    }
+  ]
+}

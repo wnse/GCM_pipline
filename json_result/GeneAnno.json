@@ -1,0 +1,16 @@
+{
+  "kegg_gene_anno_csv": "kegg_anno_table.csv",
+  "cog_gene_anno_csv": "cog_anno_table.csv",
+  "gene_anno_summary": [
+    {
+      "db": "kegg",
+      "gene_count": "4595",
+      "ratio": "0.9793265132139812"
+    },
+    {
+      "db": "cog",
+      "gene_count": "3723",
+      "ratio": "0.7934782608695652"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "cgmlst_csv": "results_alleles.tsv",
+  "cgmlst_tree": "cgMLST.tree",
+  "cgmlst_summary": {
+    "cg_num": "2581",
+    "cg_miss_num": "2",
+    "cg_miss_ratio": "0.0"
+  },
+  "serotype_summary": {
+    "output_directory": "/home/imcas/yangkai_test/Pipline/testout_Salmonella/output/tmp_dir/SeqSero2",
+    "input_files": "Salmonella.scaffolds.fasta",
+    "o_antigen_prediction": "3,10",
+    "h1_antigen_prediction": "e,h",
+    "h2_antigen_prediction": "l,w",
+    "predicted_antigenic_profile": "3,10:e,h:l,w",
+    "predicted_subspecies": "I",
+    "predicted_serotype": "Meleagridis"
+  },
+  "mlst_summary": {
+    "tax": "senterica",
+    "ST": "463",
+    "st_info": [
+      "aroC(92)",
+      "dnaN(125)",
+      "hemD(78)",
+      "hisD(128)",
+      "purE(138)",
+      "sucA(9)",
+      "thrA(141)"
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "genome_checkm_evaluate": {
+    "c_bin_id": "Salmonella.scaffolds",
+    "c_marker_lineage": "f__Enterobacteriaceae (UID5139)",
+    "c__genomes": "119",
+    "c__markers": "1168",
+    "c__marker_sets": "340",
+    "c_0": "1",
+    "c_1": "1166",
+    "c_2": "1",
+    "c_3": "0",
+    "c_4": "0",
+    "c_5": "0",
+    "c_completeness": "99.94",
+    "c_contamination": "0.04",
+    "c_strain_heterogeneity": "0.0"
+  },
+  "genome_info_summary": {
+    "scaffolds_num": "106.0",
+    "len_avg": "46381.518867924526",
+    "len_std": "127988.5538628715",
+    "len_min": "502.0",
+    "N25": "592.75",
+    "N50": "878.0",
+    "N75": "1815.5",
+    "len_max": "691918.0",
+    "genome_size": "4916441.0",
+    "GC": "0.5045030510050816",
+    "cover_depth": "211.97056691336743"
+  },
+  "gc_cover_png": "align.genomecov.depth.png",
+  "insert_len_size_pdf": "insert_size_histogram.pdf",
+  "scaffolds_fasta_file": "Salmonella.scaffolds.fasta"
+}
