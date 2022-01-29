@@ -1,0 +1,9 @@
+Species,schema_seed,training_file,cgFile
+Staphylococcus aureus,/home/data/cgMLST_db/Staphylococcus_aureus/database/schema_seed/,/home/data/cgMLST_db/Staphylococcus_aureus/ref/Staphylococcus_aureus.trn,/home/data/cgMLST_db/Staphylococcus_aureus/ref/cgMLST.tsv
+Vibrio parahaemolyticus,/home/data/cgMLST_db/Vibrio_parahaemolyticus/database/schema_seed/,/home/data/cgMLST_db/Vibrio_parahaemolyticus/ref/GCF_004006515.1_TrainedFile.trn,/home/data/cgMLST_db/Vibrio_parahaemolyticus/ref/cgMLST.tsv
+Listeria monocytogenes,/home/data/cgMLST_db/Listeria_monocytogenes/database/schema_seed/,/home/data/cgMLST_db/Listeria_monocytogenes/ref/Listeria_monocytogenes.trn,/home/data/cgMLST_db/Listeria_monocytogenes/ref/cgMLST.tsv
+Bacillus anthracis,/home/data/cgMLST_db/Bacillus_anthracis/database/schema_seed/,,/home/data/cgMLST_db/Bacillus_anthracis/ref/cgMLST.tsv
+Klebsiella pneumoniae,/home/data/cgMLST_db/Klebsiella_pneumoniae/database/schema_seed/,/home/data/cgMLST_db/Klebsiella_pneumoniae/ref/GCF_000240185.1_TrainedFile.trn,/home/data/cgMLST_db/Klebsiella_pneumoniae/ref/cgMLST_base_0.99.tsv
+Clostridium botulinum,/home/data/cgMLST_db/Clostridium_botulinum/database/schema_seed/,/home/data/cgMLST_db/Clostridium_botulinum/ref/GCF_000063585.1_TrainedFile.trn,/home/data/cgMLST_db/Clostridium_botulinum/ref/cgMLST_base_0.99.tsv
+Campylobacter coli,/home/data/cgMLST_db/Campylobacter_coli/database/schema_seed/,/home/data/cgMLST_db/Campylobacter_coli/ref/GCF_009730395.1_TrainingFile.trn,/home/data/cgMLST_db/Campylobacter_coli/ref/cgMLST_base_0.99.tsv
+Salmonella enterica,/home/data/cgMLST_db/Salmonella_enterica/database/schema_seed/,/home/data/cgMLST_db/Salmonella_enterica/ref/GCF_000006945.2_TrainedFile.trn,/home/data/cgMLST_db/Salmonella_enterica/ref/cgMLST_base_0.99.tsv

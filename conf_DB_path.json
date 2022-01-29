@@ -1,0 +1,22 @@
+{
+    "GeneAnnoDB":
+    {
+        "pfam": "/home/data/functional-database/pfam/",
+        "MetaCyc": "/home/data/functional-database/metacyc/metacyc.dmnd",
+        "kegg": "/home/data/functional-database/KEGG/kegg-prokaryotes.dmnd",
+        "cog": "/home/data/functional-database/cog/cog.prot2003-2014.dmnd",
+        "nr":"/home/data/functional-database/nr/nr.dmnd",
+        "cazy": "/home/data/functional-database/CAZy/CAZy.dmnd",
+        "PHI": "/home/data/functional-database/PHI/phi45.dmnd",
+        "Swiss-Prot": "/home/data/functional-database/uniprotkb/uniprot_swissprot.dmnd"
+    },
+    "GeneAnnoInfo":
+    {
+        "kegg": "/home/data/functional-database/KEGG/kegg-prokaryotes.ref",
+        "cog": "/home/data/functional-database/cog/cog2003-2014.csv /home/data/functional-database/cog/classification_cog_new.txt"
+    },
+    "FactorsDB":
+    {
+        "VFDB": "/home/data/GCM/database/VFDB/VFDB/VFDB.dmnd /home/data/GCM/database/VFDB/VFDB/VFDB_setB_pro.fas"
+    }
+}

@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-magic-bin = "*"
+biopython = "*"
+pandas = "*"
+scipy = "*"
+seaborn = "*"
+matplotlib = "*"
+urllib3 = "*"
+memory-profiler = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
