@@ -7,3 +7,5 @@ Klebsiella pneumoniae,/home/data/cgMLST_db/Klebsiella_pneumoniae/database/schema
 Clostridium botulinum,/home/data/cgMLST_db/Clostridium_botulinum/database/schema_seed/,/home/data/cgMLST_db/Clostridium_botulinum/ref/GCF_000063585.1_TrainedFile.trn,/home/data/cgMLST_db/Clostridium_botulinum/ref/cgMLST_base_0.99.tsv
 Campylobacter coli,/home/data/cgMLST_db/Campylobacter_coli/database/schema_seed/,/home/data/cgMLST_db/Campylobacter_coli/ref/GCF_009730395.1_TrainingFile.trn,/home/data/cgMLST_db/Campylobacter_coli/ref/cgMLST_base_0.99.tsv
 Salmonella enterica,/home/data/cgMLST_db/Salmonella_enterica/database/schema_seed/,/home/data/cgMLST_db/Salmonella_enterica/ref/GCF_000006945.2_TrainedFile.trn,/home/data/cgMLST_db/Salmonella_enterica/ref/cgMLST_base_0.99.tsv
+Escherichia coli,/home/data/cgMLST_db/Escherichia_coli/database/schema_seed/,/home/data/cgMLST_db/Escherichia_coli/ref/GCF_000005845.2_TrainingFile.trn,
+

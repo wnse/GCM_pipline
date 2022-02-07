@@ -5,6 +5,7 @@ import urllib.request
 import logging
 import json
 import argparse
+import datetime
 
 def post_url(taskID, status, url='http://localhost/task/createSubNodeReport/'):
     url_tmp = urllib.parse.urljoin(url, f'{taskID}/{status}')
@@ -38,6 +39,11 @@ def copy_file(out_file_list, dest_dir):
                 logging.error(e)
         else:
             logging.error(f'copy file not exitst {i}')
+
+def write_status(f, s):
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(f, 'a') as h:
+        print(f'{now}\t{s}', file=h)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')

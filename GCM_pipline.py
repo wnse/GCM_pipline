@@ -17,6 +17,7 @@ from Fasta_Typing import Fasta_Typing
 from Fasta_Annotation import FunctionAnno
 from post_status import post_url
 from post_status import copy_file
+from post_status import write_status
 
 def exit_now(input):
     if len(input) != 2:
@@ -24,10 +25,7 @@ def exit_now(input):
 
 
 
-def write_status(f, s):
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(f, 'a') as h:
-        print(f'{now}\t{s}', file=h)
+
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
@@ -101,23 +99,27 @@ if __name__ == '__main__':
     ## Assembly
     scaffolds_fasta_file = ''
     if fq_cor_1 and fq_cor_2:
-        try:
-            s = f'Assembly\tR\t'
-            write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(fq_cor_1, fq_cor_2, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
-            scaffolds_fasta_file = out_file_list_tmp['file'][-1]
-            copy_file(out_file_list_tmp['file'], outdir)
-            with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
-                json.dump(out_file_list_tmp['json'], H, indent=2)
-            s = f'Assembly\tD\t'
-        except Exception as e:
-            logging.error(f'Assembly {e}')
-            s = f'Assembly\tE\t'
-        try:
-            write_status(status_report, s)
-            post_url(taskID, 'Assembly')
-        except Exception as e:
-            logging.error(f'Assembly status {e}')
+        logging.info(f'{fq_cor_1}')
+        logging.info(f'{fq_cor_2}')
+    else:
+        fq_cor_1, fq_cor_2 = args.input[0], args.input[1]
+    try:
+        s = f'Assembly\tR\t'
+        write_status(status_report, s)
+        out_file_list_tmp = Fastq_Assemble(fq_cor_1, fq_cor_2, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
+        scaffolds_fasta_file = out_file_list_tmp['file'][-1]
+        copy_file(out_file_list_tmp['file'], outdir)
+        with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
+            json.dump(out_file_list_tmp['json'], H, indent=2)
+        s = f'Assembly\tD\t'
+    except Exception as e:
+        logging.error(f'Assembly {e}')
+        s = f'Assembly\tE\t'
+    try:
+        write_status(status_report, s)
+        post_url(taskID, 'Assembly')
+    except Exception as e:
+        logging.error(f'Assembly status {e}')
 
     # scaffolds_fasta_file = '/home/imcas/yangkai_test/Pipline/testout/tmp_dir/test.scaffolds.fasta'
     # species = 'Vibrio parahaemolyticus'

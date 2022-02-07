@@ -12,6 +12,9 @@ import run_docker
 from mkdir import mkdir
 from Fastq_Assemble import run_checkm
 from plot_gc_cover import plot_len_dis
+from post_status import post_url
+from post_status import copy_file
+from post_status import write_status
 
 def run_rnammer(fa, outdir):
     logging.info('rnammer')
@@ -81,7 +84,7 @@ def run_prodigal(fa, outdir):
     out_len_dis_png = os.path.join(outdir, 'prodigal_gene_len.png')
     cmd_out = run_docker.prodigal_docker(fa, outdir)
     if cmd_out[0]:
-        logging.error(prodigal_out)
+        logging.error(cmd_out)
         return 0, 0
     prodigal_out, gene_dir, faafile, gfffile = cmd_out
     try:
@@ -117,9 +120,11 @@ def run_antismash(fa, outdir, threads):
     return antismash_dir
 
 
-def process_kegg(diamond_out, db_info, outfile):
+def process_kegg(diamond_out, db_info, outfile, col_list=[0,1]):
     try:
         df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
+        if df_diamond.empty:
+            return 0
         subject_list = set(df_diamond[1].to_list())
         subject_info = []
         with open(db_info, 'rt') as h:
@@ -127,11 +132,32 @@ def process_kegg(diamond_out, db_info, outfile):
                 if not re.match('^#', i):
                     info = i.strip().split('\t')
                     if info[0] in subject_list:
-                        subject_info.append(info[:2])
+                        subject_info.append([info[col] for col in col_list if len(info) > col])
         df_subject = pd.DataFrame(subject_info).set_index(0)
         df_merge = pd.merge(df_diamond, df_subject, left_on=1, right_index=True, how='left')
         df_merge.to_csv(outfile, header=False, sep='\t')
+        return len(df_diamond.index.unique())
+    except Exception as e:
+        logging.error(e)
+
+def process_phi(diamond_out, db_info, outfile):
+    try:
+        df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
+        df_subject = pd.read_csv(db_info, header=None, sep='#', index_col=1)
+        df_merge = pd.merge(df_diamond, df_subject, left_on=1, right_index=True, how='left')
+        df_merge.to_csv(outfile, header=False, sep='\t')
         return df_merge.shape[0]
+    except Exception as e:
+        logging.error(e)
+
+def process_cazy(diamond_out, db_info, outfile):
+    try:
+        df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
+        # df_subject = pd.read_csv(db_info, header=None, sep='#', index_col=1)
+        # df_merge = pd.merge(df_diamond, df_subject, left_on=1, right_index=True, how='left')
+        df_diamond['ref'] = df_diamond[1].str.split('|').str[-1]
+        df_diamond.to_csv(outfile, header=False, sep='\t')
+        return len(df_diamond.index.unique())
     except Exception as e:
         logging.error(e)
 
@@ -146,21 +172,10 @@ def process_cog(diamond_out, db_info, outfile):
         df_merge = df_merge.drop_duplicates(subset=0, keep='first')
         df_merge = pd.merge(df_merge, df_class.rename(columns={0:'cog'}), left_on='cog', right_on='cog', how='left')
         df_merge.drop('gi', axis=1).to_csv(outfile, header=None, sep='\t', index=False)
-        return df_merge.shape[0]
+        return len(df_diamond[0].unique())
     except Exception as e:
         logging.error(e)
         return 0
-
-# def run_checkm(fa, outdir):
-#     logging.info(f'checkm')
-#     scaffolds_fasta_dir = os.path.join(outdir, 'scaffolds_fasta')
-#     mkdir(scaffolds_fasta_dir)
-#     shutil.copy(fa, scaffolds_fasta_dir)
-#     checkm_dir = os.path.join(outdir, 'checkm')
-#     checkm_log_file = os.path.join(outdir, 'checkm_lineage.log')
-#     checkm_lineage_out = run_checkm_lineage(scaffolds_fasta_dir, checkm_dir, checkm_log_file, threads)
-#     if checkm_lineage_out:
-#         logging.info(f'{checkm_lineage_out}')
 
 def StructureAnno(fa, outdir, db_path, threads, checkm=False):
     out_file_list = []
@@ -205,16 +220,34 @@ def FunctionAnno(fa, outdir, db_path, db_info, threads, db_list, faafile=None):
                     pfam_out = run_pfam(faafile, outdir, db_path['pfam'], threads)
                 else:
                     diamond_out = run_diamond(faafile, db, db_path[db], outdir, threads)
+                    outfile = ''
                     if os.path.isfile(diamond_out):
-                        if db == 'kegg' and db in db_info:
-                            outfile = os.path.join(outdir, 'kegg_anno_table.csv')
+                        if db in ['kegg', 'MetaCyc'] and db in db_info:
+                            outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_kegg(diamond_out, db_info[db], outfile)
+                            out_file_list['file'].append(outfile)
+                        if db in ['NR'] and db in db_info:
+                            outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
+                            anno_count[db] = process_kegg(diamond_out, db_info[db], outfile, col_list=[0, 1, 2, 3])
+                            out_file_list['file'].append(outfile)
+                        if db in ['SwissProt'] and db in db_info:
+                            outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
+                            anno_count[db] = process_kegg(diamond_out, db_info[db], outfile, col_list=[0, 1, 2, 5])
+                            out_file_list['file'].append(outfile)
+                        if db in ['PHI'] and db in db_info:
+                            outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
+                            anno_count[db] = process_phi(diamond_out, db_info[db], outfile)
+                            out_file_list['file'].append(outfile)
+                        if db in ['cazy'] and db in db_info:
+                            outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
+                            anno_count[db] = process_cazy(diamond_out, db_info[db], outfile)
                             out_file_list['file'].append(outfile)
                         if db == 'cog' and db in db_info:
                             outfile = os.path.join(outdir, 'cog_anno_table.csv')
                             anno_count[db] = process_cog(diamond_out, db_info[db], outfile)
                             out_file_list['file'].append(outfile)
-                        out_file_list['json'].update({f'{db}_gene_anno_csv': os.path.split(outfile)[1]})
+                        if outfile:
+                            out_file_list['json'].update({f'{db}_gene_anno_csv': os.path.split(outfile)[1]})
             else:
                 logging.info(f'No database path for {db}')
 
@@ -238,7 +271,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
     parser.add_argument('-c', '--checkm', action='store_true', help='evaluate genome by checkm')
-    parser.add_argument('-db', '--db', default=['kegg','cog', 'nr', 'pfam', 'MetaCyc', 'cazy', 'PHI', 'Swiss-Prot'], help='database for annotation', nargs='+')
+    parser.add_argument('-db', '--db', default=['kegg','cog', 'NR', 'MetaCyc', 'cazy', 'PHI', 'SwissProt'], help='database for annotation', nargs='+')
     parser.add_argument('-dp', '--db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}', help='conf_DB_path.json genome database path info')
     args = parser.parse_args()
 
@@ -257,17 +290,37 @@ if __name__ == '__main__':
         logging.info(db_path)
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
-        out_file_list = FunctionAnno(args.input, tmp_dir, db_path['GeneAnnoDB'], db_path['GeneAnnoInfo'], args.threads, db_anno_list)
+        status_report = os.path.join(outdir, 'status_report.txt')
 
-        for i in out_file_list:
-            if os.path.isfile(i) or os.path.isdir(i):
-                try:
-                    des_file = shutil.copy(i, args.outdir)
-                    logging.info(des_file)
-                except Exception as e:
-                    logging.error(e)
-            else:
-                logging.error(f' not exitst {i}')
+        try:
+            s = f'GeneAnno\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = FunctionAnno(args.input, tmp_dir, db_path['GeneAnnoDB'], db_path['GeneAnnoInfo'],
+                                         args.threads, db_anno_list)
+            copy_file(out_file_list_tmp['file'], outdir)
+
+            with open(os.path.join(outdir, 'GeneAnno.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'GeneAnno\tD\t'
+        except Exception as e:
+            logging.error(f'GeneAnno {e}')
+            s = f'GeneAnno\tE\t'
+
+        try:
+            write_status(status_report, s)
+            # post_url(taskID, 'GeneAnno')
+        except Exception as e:
+            logging.error(f'GeneAnno status {e}')
+
+        # for i in out_file_list:
+        #     if os.path.isfile(i) or os.path.isdir(i):
+        #         try:
+        #             des_file = shutil.copy(i, args.outdir)
+        #             logging.info(des_file)
+        #         except Exception as e:
+        #             logging.error(e)
+        #     else:
+        #         logging.error(f' not exitst {i}')
 
     else:
         logging.info(f'{args.db_path} not exists')
