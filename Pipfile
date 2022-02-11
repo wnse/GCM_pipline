@@ -12,6 +12,8 @@ seaborn = "*"
 matplotlib = "*"
 urllib3 = "*"
 memory-profiler = "*"
+ete3 = "*"
+pyqt5 = "*"
 
 [dev-packages]
 

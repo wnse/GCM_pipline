@@ -37,22 +37,23 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for analysis')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     parser.add_argument('-type', '--type', default='fastqPE', choices=['fqPE', 'fa'], help='data type for analysis')
-    parser.add_argument('-d16S', '--db_16S', default='/home/data/new_tax/new-tax-iden-update-20200810/database/best.16s',
+    parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
                         help='16S database, pre blastn index')
-    parser.add_argument('-i16S', '--info_16S', default='/home/data/new_tax/new-tax-iden-update-20200810/database/16sdb.info_temp',
+    parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
                         help='16S database taxonomy info')
-    parser.add_argument('-dg', '--db_genome', default='/home/data/new_tax/new-tax-iden-update-20200810/database/genome.msh',
+    parser.add_argument('-dg', '--db_genome', default='/Bio/tax-20200810_DB/database/genome.msh',
                         help='genome database, mash index')
-    parser.add_argument('-ig', '--info_genome', default='/home/data/new_tax/new-tax-iden-update-20200810/database/all.genome.best.info.final',
+    parser.add_argument('-ig', '--info_genome', default='/Bio/tax-20200810_DB/database/all.genome.best.info.final',
                         help='genome database taxonomy info')
-    parser.add_argument('-dgf', '--db_genome_fa', default='/home/data/new_tax/new-tax-iden-update-20200810/fasta',
+    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
                         help='genome database fasta file dir')
     parser.add_argument('-con_db_path', '--con_db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}',
                         help='conf_DB_path.json genome database path info')
     parser.add_argument('-cgmlst_db_path', '--cgmlst_db_path', default=f'{os.path.join(bin_dir, "cgMLST_db.csv")}',
                         help='cgMLST database path for schema_seed, training file and core gene')
-    parser.add_argument('-db_list', '--db_list', default=['kegg', 'cog'], #, 'nr', 'pfam', 'MetaCyc', 'cazy', 'PHI', 'Swiss-Prot'],
+    parser.add_argument('-db_list', '--db_list', default=['kegg','cog', 'NR', 'MetaCyc', 'cazy', 'PHI', 'SwissProt'],
                         help='database for annotation', nargs='+')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
     if args.type == 'fastqPE':
@@ -208,6 +209,12 @@ if __name__ == '__main__':
         post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
     except Exception as e:
         logging.error(f'post_url getTaskRunningStatus {e}')
+
+    if not args.debug:
+        try:
+            shutil.rmtree(tmp_dir)
+        except Exception as e:
+            logging.error(e)
 
 
 

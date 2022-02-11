@@ -15,7 +15,7 @@ def run_docker(img_name, all_data_path, cmd):
     # return f"{cmd_run}\n\n"
 
 def fastqc_docker(fq_path_list, outdir, threads):
-    img_name = 'registry.servicemgr.bjwsws:5000/fastqc'
+    img_name = 'registry.servicemgr.bjwsws:5000/fastqc:latest'
     all_data_path = fq_path_list + [outdir]
     qc_dir = os.path.join(outdir, 'fastqc_dir')
     mkdir(qc_dir)
@@ -304,18 +304,9 @@ def pilercr_docker(fa, outfile):
     img_name = 'registry.servicemgr.bjwsws:5000/metatools:lite'
     all_data_path = [fa, outfile]
     log_file = os.path.join(os.path.split(outfile)[0], 'pilercr.log')
-    cmd = (f'/BioBin/pilercr1.06/pilercrpilercr -in {fa} -out {outfile} >{log_file} 2>&1')
+    cmd = (f'/BioBin/pilercr1.06/pilercr -in {fa} -out {outfile} >{log_file} 2>&1')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     return cmd_out
-
-# docker run --rm -v ${temp_dir}:${temp_dir}
-# registry.servicemgr.bjwsws:5000/trnascan:v2.0
-# tRNAscan-SE
-# -qQ -Y
-# -o ${temp_dir}/${key}_tRNAscan/${key}.tRNAscan.a
-# -m ${temp_dir}/${key}_tRNAscan/${key}.tRNAscan.b
-# -c /usr/local/bin/tRNAscan-SE.conf
-# -B ${temp_dir}/${key}_tRNAscan_genome/${key}.fasta
 
 def trnascan_docker(fa, outdir):
     img_name = 'registry.servicemgr.bjwsws:5000/trnascan:v2.0'
@@ -399,21 +390,6 @@ def antismash_docker(fa, outdir, threads=1):
         return cmd_out, 0, 0
     return cmd_out, antisamsh_dir
 
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 pfam:latest perl /usr/local/bin/pfam_scan.pl -fasta ${temp_dir}/${key}_Prodigal/${key}.faa -dir ${databasepath}/pfam/ -outfile ${temp_dir}/${key}_diamond/Pfam_diamond.txt -cpu 48
-# sudo docker run --rm -v ${temp_dir}:${temp_dir}	 registry.servicemgr.bjwsws:5000/antismash:v4.0.2 antismash --taxon bacteria --input-type nucl -c 48 --clusterblast ${temp_dir}/${key}_antiSMASH/${key}.fasta --outputfolder ${temp_dir}/${key}_antiSMASH
-
-
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d /home/data/GCM/database/CARD/CARD_pro.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/CARD_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/KEGG/kegg-prokaryotes.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa -o ${temp_dir}/${key}_diamond/KEGG_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/cog/cog.prot2003-2014.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa -o ${temp_dir}/${key}_diamond/COG_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/metacyc/metacyc.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa -o ${temp_dir}/${key}_diamond/MetaCyc_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/nr/nr.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/NR_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/CAZy/CAZy.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/CAZy_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/PHI/phi45.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/PHI_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d /home/data/GCM/database/VFDB/VFDB_setB_pro.manul.dmnd	-q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/VFDB_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-# sudo docker run --rm -v ${temp_dir}:${temp_dir} -v ${databasepath}:${databasepath}	 registry.servicemgr.bjwsws:5000/diamond:new diamond blastp -p $threads -d ${databasepath}/uniprotkb/uniprot_swissprot.dmnd -q ${temp_dir}/${key}_Prodigal/${key}.faa	-o ${temp_dir}/${key}_diamond/Swiss-Prot_diamond.txt -e 1e-5 -k 1 --max-hsps 1 --id 40 --query-cover 40 --subject-cover 40
-
-
 def rgi_docker(fa, outdir, threads=1):
     img_name = 'rgi:latest'
     all_data_path = [fa, outdir]
@@ -469,13 +445,6 @@ def mlst_docker(fa, outdir, threads=1):
     if cmd_out:
         return cmd_out, 0
     return cmd_out, mlst_out
-
-# sudo docker run --rm -v ${script}:${script} -v ${outdir}:${outdir} -v ${ref}:${ref}
-# rbase
-# Rscript
-# ${script}/R_cgMLST_tree.r
-# ${outdir}/cgMLST/input_genome_cgMLST.tsv
-# ${outdir}/cgMLST/input_genome_cgMLST.tree
 
 def r_docker(*args):
     img_name = 'rbase'

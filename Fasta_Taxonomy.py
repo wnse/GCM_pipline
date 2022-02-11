@@ -4,11 +4,15 @@ import shutil
 import argparse
 import logging
 import re
+import json
 import pandas as pd
 from Bio import SeqIO
 
 from mkdir import mkdir
 import run_docker
+from post_status import post_url
+from post_status import copy_file
+from post_status import write_status
 
 def filter_fa_by_len(fa, outfa, len_cutoff=1200):
     tmp_len_list = [len(seq.seq) for seq in SeqIO.parse(fa, 'fasta')]
@@ -34,7 +38,9 @@ def run_rnammer(fa, outdir):
         filter_fa_file = os.path.join(outdir, 'RNAmmer.filter.fasta')
         filter_count = filter_fa_by_len(fa_file, filter_fa_file)
         logging.info(f'filtered 16S sequences {filter_count}')
-        return rnammer_out, filter_fa_file
+        if filter_count:
+            return rnammer_out, filter_fa_file
+        return rnammer_out, 0
     return rnammer_out, 0
 
 def run_blastn(query, db, outfile, threads):
@@ -51,9 +57,11 @@ def merge_blast_with_tax(blast_16S_out, db_16S_info, blast_16S_out_tax, cutoff=1
                         'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
     df_merge = pd.merge(df_blast.head(cutoff), df_db.set_index(0)[[2,13,14]], left_on='sseqid', right_on=0, how='left')
     df_merge = df_merge.rename(columns={2:'slen',13:'species', 14:'lineage'})
+    df_merge['q_pos'] = df_merge['qstart'].astype(str) + '-' + df_merge['qend'].astype(str)
+    df_merge['s_pos'] = df_merge['sstart'].astype(str) + '-' + df_merge['send'].astype(str)
     df_merge['completness'] = df_merge['length']/df_merge['slen']
     df_merge.loc[df_merge['completness']>100, 'completness'] = 100
-    out_list = ['sseqid', 'completness', 'length' ,'pident', 'bitscore', 'species', 'lineage']
+    out_list = ['sseqid', 'completness', 'length' , 'q_pos', 's_pos', 'pident', 'bitscore', 'species', 'lineage']
     df_merge[out_list].to_csv(blast_16S_out_tax, index=False)
 
 def Fasta_16S_Taxonomy(fa, outdir, db_16S, db_16S_info, threads):
@@ -88,7 +96,7 @@ def merge_msh_with_tax(mash_out, db_info, mash_out_tax, cutoff=10):
 
 def cal_ANI(fa1, fa2, outdir, threads=1):
     res_ani_total = {}
-    logging.info(f'{fa1} vs {fa2}')
+    logging.info(f'{os.path.split(fa1)[1]} vs {os.path.split(fa2)[1]}')
     logging.info('cal ANI: fastANI')
     outfile = os.path.join(outdir, 'fastANI.out')
     tmp_out = run_docker.fastANI_docker(fa1, fa2, outfile, threads=threads)
@@ -219,38 +227,62 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
-    parser.add_argument('-d16S', '--db_16S', default='/home/data/new_tax/new-tax-iden-update-20200810/database/best.16s',
+    parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
+    parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
                         help='16S database, pre blastn index')
-    parser.add_argument('-i16S', '--info_16S', default='/home/data/new_tax/new-tax-iden-update-20200810/database/16sdb.info_temp',
+    parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
                         help='16S database taxonomy info')
-    parser.add_argument('-dg', '--db_genome', default='/home/data/new_tax/new-tax-iden-update-20200810/database/genome.msh',
+    parser.add_argument('-dg', '--db_genome', default='/Bio/tax-20200810_DB/database/genome.msh',
                         help='genome database, mash index')
-    parser.add_argument('-ig', '--info_genome', default='/home/data/new_tax/new-tax-iden-update-20200810/database/all.genome.best.info.final',
+    parser.add_argument('-ig', '--info_genome', default='/Bio/tax-20200810_DB/database/all.genome.best.info.final',
                         help='genome database taxonomy info')
-    parser.add_argument('-dgf', '--db_genome_fa', default='/home/data/new_tax/new-tax-iden-update-20200810/fasta',
+    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
                         help='genome database fasta file dir')
     args = parser.parse_args()
 
-    try:
-        os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
-        outdir = args.outdir
-        mkdir(outdir)
-        logfile = os.path.join(outdir, 'log')
-        logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+    os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
+    outdir = args.outdir
+    mkdir(outdir)
+    logfile = os.path.join(outdir, 'log')
+    logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    status_report = os.path.join(outdir, 'status_report.txt')
+    taskID = args.taskID
+
+    if os.path.isfile(args.db_16S + '.nsq') and os.path.isfile(args.info_16S) and os.path.isfile(args.db_genome) and os.path.isfile(args.info_genome):
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
-        out_file_list = Fasta_Taxonomy(args.input, tmp_dir, args.db_16S, args.info_16S, args.db_genome, args.info_genome, args.db_genome_fa, args.threads, args.name)
+        try:
+            ## Taxonomy
+            s = f'Taxonomy\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = Fasta_Taxonomy(args.input, tmp_dir, args.db_16S, args.info_16S, args.db_genome, args.info_genome, args.db_genome_fa, args.threads, args.name)
+            species_file = out_file_list_tmp['file'][-1]
+            species = pd.read_csv(species_file, index_col=0, header=None).loc['species',1]
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Taxonomy.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Taxonomy\tD\t'
+        except Exception as e:
+            logging.error(f'Taxonomy {e}')
+            s = f'Taxonomy\tE\t'
 
-        for i in out_file_list:
-            if os.path.isfile(i) or os.path.isdir(i):
-                try:
-                    des_file = shutil.move(i, args.outdir)
-                    logging.info(des_file)
-                except Exception as e:
-                    logging.error(e)
-            else:
-                logging.error(f' not exitst {i}')
-    except Exception as e:
-        logging.error(e)
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Taxonomy')
+        except Exception as e:
+            logging.error(f'Taxonomy status {e}')
+
+        # for i in out_file_list:
+        #     if os.path.isfile(i) or os.path.isdir(i):
+        #         try:
+        #             des_file = shutil.move(i, args.outdir)
+        #             logging.info(des_file)
+        #         except Exception as e:
+        #             logging.error(e)
+        #     else:
+        #         logging.error(f' not exitst {i}')
+    else:
+        logging.error(f'something missed {args.db_16S} {args.info_16S} {args.db_genome} {args.info_genome}')
 
 

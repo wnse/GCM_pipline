@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 import os
 import shutil
 import argparse
@@ -9,10 +10,12 @@ from Bio import SeqIO
 import pandas as pd
 
 from mkdir import mkdir
+import run_docker
 from unzip_file import file_type
 from read_qc_zip import get_qc_data
+from post_status import post_url
 from post_status import copy_file
-import run_docker
+from post_status import write_status
 
 def cal_q20(f):
     ft = file_type(f)
@@ -207,26 +210,51 @@ def Fastq_QC(fq1, fq2, outdir, threads):
 
 
 if __name__ == '__main__':
+    cpu_num = multiprocessing.cpu_count()
+    bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
-    parser.add_argument('-t', '--threads', default='1', help='threads for fastqc')
+    parser.add_argument('-t', '--threads', default=cpu_num, help='threads for fastqc')
+    parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     args = parser.parse_args()
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
 
+    outdir = args.outdir
+    mkdir(outdir)
+    logfile = os.path.join(outdir, 'log')
+    logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+    status_report = os.path.join(outdir, 'status_report.txt')
+    tmp_dir = os.path.join(outdir, 'tmp_dir')
+    mkdir(tmp_dir)
+    taskID = args.taskID
+    fq_cor_1, fq_cor_2 = ('', '')
     try:
-        outdir = args.outdir
-        mkdir(outdir)
-        logfile = os.path.join(outdir, 'log')
-        logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-        tmp_dir = os.path.join(outdir, 'tmp_dir')
-        mkdir(tmp_dir)
-        clean_fq_list, out_file_list = Fastq_QC(args.input[0], args.input[1], tmp_dir, args.threads)
-        if out_file_list['file']:
-            copy_file(out_file_list['file'], outdir)
-        if out_file_list['json']:
-            print(json.dumps(out_file_list['json'], indent=2))
+        ## Fastqc
+        s = f'Fastqc\tR\t'
+        write_status(status_report, s)
+        [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC(args.input[0], args.input[1], tmp_dir, threads=args.threads)
+        copy_file(out_file_list_tmp['file'], outdir)
+        with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
+            json.dump(out_file_list_tmp['json'], H, indent=2)
+        s = f'Fastqc\tD\t'
+    except Exception as e:
+        logging.error(f'Fastqc {e}')
+        s = f'Fastqc\tE\t'
+    try:
+        write_status(status_report, s)
+        post_url(taskID, 'Fastqc')
+    except Exception as e:
+        logging.error(f'Fastqc status {e}')
+
+    # try:
+        # clean_fq_list, out_file_list = Fastq_QC(args.input[0], args.input[1], tmp_dir, args.threads)
+        # if out_file_list['file']:
+        #     copy_file(out_file_list['file'], outdir)
+        # if out_file_list['json']:
+        #     print(json.dumps(out_file_list['json'], indent=2))
 
         # for i in out_file_list['dir']:
         #     if os.path.isfile(i) or os.path.isdir(i):
@@ -237,5 +265,5 @@ if __name__ == '__main__':
         #             logging.error(e)
         #     else:
         #         logging.error(f' not exitst {i}')
-    except Exception as e:
-        logging.error(e)
+    # except Exception as e:
+    #     logging.error(e)

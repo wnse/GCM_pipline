@@ -1,9 +1,11 @@
 import os
+import multiprocessing
 import shutil
 import argparse
 import logging
 import sys
 import re
+import json
 import pandas as pd
 from Bio import SeqIO
 
@@ -11,6 +13,10 @@ import Fastq_QC
 import run_docker
 from mkdir import mkdir
 from plot_gc_cover import fasta2gcCover
+from plot_gc_cover import plot_len_dis
+from post_status import post_url
+from post_status import copy_file
+from post_status import write_status
 
 def run_spades(fq1, fq2, outdir, threads):
     logging.info('spades')
@@ -19,17 +25,21 @@ def run_spades(fq1, fq2, outdir, threads):
     logging.info(scaffolds_fasta)
     return scaffolds_fasta
 
-def filter_fa_by_len(fa, outfile, cutoff=500):
+def filter_fa_by_len(fa, outfile, cutoff=500, name='scaffolds'):
     filter_fa = []
     max_len = 0
     seq_count = 0
+    name_no = 1
     try:
         for seq in SeqIO.parse(fa, 'fasta'):
             tmp_len = len(seq.seq)
             if tmp_len > max_len:
                 max_len = tmp_len
             if tmp_len >cutoff:
+                seq.id = name + '_' + str(name_no)
+                seq.description = seq.id + ':' + str(len(seq.seq))
                 filter_fa.append(seq)
+                name_no += 1
         if filter_fa:
             seq_count = SeqIO.write(filter_fa, outfile, 'fasta')
     except Exception as e:
@@ -59,8 +69,23 @@ def run_picard_CIAM(sortbam, outdir):
         logging.error(cmd_out)
         return cmd_out, 0, 0
     picard_out, outTxt, outPdf = cmd_out
+    outpng = outPdf + '.png'
+    try:
+        check = 0
+        size_lst = []
+        with open(outTxt, 'rt') as h:
+            for i in h.readlines():
+                if check:
+                    if re.match(r'\d+', i):
+                        tmp = i.strip().split()
+                        size_lst.extend([int(tmp[0])] * int(tmp[1]))
+                if re.match('insert_size', i):
+                    check = 1
+        plot_len_dis(size_lst, outpng, xmax=size_lst[-1], xlabel='Insert Length')
+    except Exception as e:
+        logging.error(e)
     logging.info(picard_out)
-    return picard_out, outTxt, outPdf
+    return picard_out, outTxt, outpng
 
 def run_checkm(fa, outdir, threads):
     try:
@@ -104,7 +129,7 @@ def Fastq_Assemble(fq1, fq2, outdir, threads, sampleTag='test', fastqc=None):
         # scaffolds_fasta = os.path.join(outdir, 'spades_21_33_55', 'scaffolds.fasta') #test
         if scaffolds_fasta:
             scaffolds_fasta_file = os.path.join(outdir, sampleTag+'.scaffolds.fasta')
-            scaffolds_count, scaffolds_max_len = filter_fa_by_len(scaffolds_fasta, scaffolds_fasta_file)
+            scaffolds_count, scaffolds_max_len = filter_fa_by_len(scaffolds_fasta, scaffolds_fasta_file, name=sampleTag)
             logging.info(f'scaffolds {scaffolds_count} maxLen {scaffolds_max_len}')
             if scaffolds_count and scaffolds_max_len:
                 try:
@@ -157,8 +182,11 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for fastqc')
+    parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     args = parser.parse_args()
 
+    os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
+    taskID = args.taskID
     try:
         exit_now(args.input)
         outdir = args.outdir
@@ -167,15 +195,35 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
-        out_file_list = Fastq_Assemble(args.input[0], args.input[1], tmp_dir, args.threads, sampleTag=args.name)
-        for i in out_file_list:
-            if os.path.isfile(i) or os.path.isdir(i):
-                try:
-                    des_file = shutil.move(i, args.outdir)
-                    logging.info(des_file)
-                except Exception as e:
-                    logging.error(e)
-            else:
-                logging.error(f' not exitst {i}')
+        status_report = os.path.join(outdir, 'status_report.txt')
+        ## Assembly
+        scaffolds_fasta_file = ''
+        try:
+            s = f'Assembly\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = Fastq_Assemble(args.input[0], args.input[1], tmp_dir, args.threads, sampleTag=args.name)
+            scaffolds_fasta_file = out_file_list_tmp['file'][-1]
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Assembly\tD\t'
+        except Exception as e:
+            logging.error(f'Assembly {e}')
+            s = f'Assembly\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Assembly')
+        except Exception as e:
+            logging.error(f'Assembly status {e}')
+
+        # for i in out_file_list:
+        #     if os.path.isfile(i) or os.path.isdir(i):
+        #         try:
+        #             des_file = shutil.move(i, args.outdir)
+        #             logging.info(des_file)
+        #         except Exception as e:
+        #             logging.error(e)
+        #     else:
+        #         logging.error(f' not exitst {i}')
     except Exception as e:
         logging.error(e)

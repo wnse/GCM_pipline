@@ -1,27 +1,27 @@
 {
     "GeneAnnoDB":
     {
-        "pfam": "/home/data/functional-database/pfam/",
-        "MetaCyc": "/home/data/functional-database/metacyc/metacyc.dmnd",
-        "kegg": "/home/data/functional-database/KEGG/kegg-prokaryotes.dmnd",
-        "cog": "/home/data/functional-database/cog/cog.prot2003-2014.dmnd",
-        "NR":"/home/data/functional-database/nr/nr.dmnd",
-        "cazy": "/home/data/functional-database/CAZy/CAZy.dmnd",
-        "PHI": "/home/data/functional-database/PHI/phi45.dmnd",
-        "SwissProt": "/home/data/functional-database/uniprotkb/uniprot_swissprot.dmnd"
+        "pfam": "/Bio/functional_DB/pfam/",
+        "MetaCyc": "/Bio/functional_DB/metacyc/metacyc.dmnd",
+        "kegg": "/Bio/functional_DB/KEGG/kegg-prokaryotes.dmnd",
+        "cog": "/Bio/functional_DB/cog/cog.prot2003-2014.dmnd",
+        "NR":"/Bio/functional_DB/nr/nr.dmnd",
+        "cazy": "/Bio/functional_DB/CAZy/CAZy.dmnd",
+        "PHI": "/Bio/functional_DB/PHI/phi45.dmnd",
+        "SwissProt": "/Bio/functional_DB/uniprotkb/uniprot_swissprot.dmnd"
     },
     "GeneAnnoInfo":
     {
-        "kegg": "/home/data/functional-database/KEGG/kegg-prokaryotes.ref",
-        "cog": "/home/data/functional-database/cog/cog2003-2014.csv /home/data/functional-database/cog/classification_cog_new.txt",
-        "NR": "/home/data/functional-database/nr/nr_taxo",
-        "MetaCyc": "/home/data/functional-database/metacyc/metacyc.ref",
-        "cazy": "/home/data/functional-database/CAZy/CAZy.info",
-        "SwissProt": "/home/data/functional-database/uniprotkb/uniprot_swissprot.ref",
-        "PHI": "/home/data/functional-database/PHI/phi45.info"
+        "kegg": "/Bio/functional_DB/KEGG/kegg-prokaryotes.ref",
+        "cog": "/Bio/functional_DB/cog/cog2003-2014.csv /Bio/functional_DB/cog/classification_cog_new.txt",
+        "NR": "/Bio/functional_DB/nr/nr_taxo",
+        "MetaCyc": "/Bio/functional_DB/metacyc/metacyc.ref",
+        "cazy": "/Bio/functional_DB/CAZy/CAZy.info",
+        "SwissProt": "/Bio/functional_DB/uniprotkb/uniprot_swissprot.ref",
+        "PHI": "/Bio/functional_DB/PHI/phi45.info"
     },
     "FactorsDB":
     {
-        "VFDB": "/home/data/GCM/database/VFDB/VFDB/VFDB.dmnd /home/data/GCM/database/VFDB/VFDB/VFDB_setB_pro.fas"
+        "VFDB": "/Bio/ARG_DB/VFDB/VFDB/VFDB.dmnd /Bio/ARG_DB/VFDB/VFDB/VFDB_setB_pro.fas"
     }
 }

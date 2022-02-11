@@ -1,16 +1,55 @@
 {
+  "gene_info_summary": {
+    "total_gene_num": "1831.0",
+    "total_gene_len": "1669923.0",
+    "avg_gene_len": "912.0278536318953",
+    "avg_inter_len": "166.63244128891316",
+    "partial_gene_ratio": "0.0010922992900054"
+  },
+  "gene_len_dis_png": "prodigal_gene_len.png",
+  "gene_predicted_dir": "prodigal_dir",
   "kegg_gene_anno_csv": "kegg_anno_table.csv",
   "cog_gene_anno_csv": "cog_anno_table.csv",
+  "NR_gene_anno_csv": "NR_anno_table.csv",
+  "MetaCyc_gene_anno_csv": "MetaCyc_anno_table.csv",
+  "cazy_gene_anno_csv": "cazy_anno_table.csv",
+  "PHI_gene_anno_csv": "PHI_anno_table.csv",
+  "SwissProt_gene_anno_csv": "SwissProt_anno_table.csv",
   "gene_anno_summary": [
     {
       "db": "kegg",
-      "gene_count": "4595",
-      "ratio": "0.9793265132139812"
+      "gene_count": "1802",
+      "ratio": "0.9841616602949208"
     },
     {
       "db": "cog",
-      "gene_count": "3723",
-      "ratio": "0.7934782608695652"
+      "gene_count": "1453",
+      "ratio": "0.7935554341889678"
+    },
+    {
+      "db": "NR",
+      "gene_count": "1817",
+      "ratio": "0.9923539049699618"
+    },
+    {
+      "db": "MetaCyc",
+      "gene_count": "382",
+      "ratio": "0.20862916439104315"
+    },
+    {
+      "db": "cazy",
+      "gene_count": "39",
+      "ratio": "0.0212998361551065"
+    },
+    {
+      "db": "PHI",
+      "gene_count": "151",
+      "ratio": "0.08246859639541235"
+    },
+    {
+      "db": "SwissProt",
+      "gene_count": "1103",
+      "ratio": "0.602403058438012"
     }
   ]
 }

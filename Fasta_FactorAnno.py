@@ -9,9 +9,60 @@ from Bio import SeqIO
 
 import run_docker
 from mkdir import mkdir
-from Fasta_Annotation import run_checkm
-from Fasta_Annotation import run_diamond
-from Fasta_Annotation import run_prodigal
+from Fastq_Assemble import run_checkm
+from plot_gc_cover import plot_len_dis
+from post_status import post_url
+from post_status import copy_file
+from post_status import write_status
+
+
+def get_gff_info(gfffile, outfile, outpng):
+    total_info = []
+    with open(gfffile, 'rt') as h:
+        for i in h.readlines():
+            if not re.match('^#', i):
+                total_info.append(i.strip().split('\t'))
+    df = pd.DataFrame(total_info, columns=['id', 'version', 'type', 'start', 'end', 'score', 'dir', 'none', 'info'])
+    df['start'] = df['start'].astype(float)
+    df['end'] = df['end'].astype(float)
+    df['len'] = df['end'] - df['start'] + 1
+    try:
+        plot_len_dis(df['len'], outpng, xlabel='Gene Length')
+    except Exception as e:
+        logging.error(f'plot len dist {e}')
+    total_gene = df.shape[0]
+    avg_inter = ((df.groupby('id')['end'].max() - df.groupby('id')['start'].min() + 1 ) - df.groupby('id')['len'].sum()).sum() / total_gene
+    partial_gene = df['info'].str.split(';').str[1].str.split('=').str[1].astype(float).astype(bool).sum() / total_gene
+    avg_len = df['len'].mean()
+    total_len = df['len'].sum()
+    df_tmp = {'total_gene_num':total_gene, 'total_gene_len':total_len, 'avg_gene_len':avg_len, 'avg_inter_len':avg_inter, 'partial_gene_ratio':partial_gene}
+    pd.DataFrame.from_dict(df_tmp, orient='index').to_csv(outfile, header=None)
+
+def run_prodigal(fa, outdir):
+    logging.info('prodigal')
+    gene_info_file = os.path.join(outdir, 'prodigal_gene_info.csv')
+    out_len_dis_png = os.path.join(outdir, 'prodigal_gene_len.png')
+    cmd_out = run_docker.prodigal_docker(fa, outdir)
+    if cmd_out[0]:
+        logging.error(cmd_out)
+        return 0, 0
+    prodigal_out, gene_dir, faafile, gfffile = cmd_out
+    try:
+        get_gff_info(gfffile, gene_info_file, out_len_dis_png)
+    except Exception as e:
+        logging.error(e)
+    return gene_dir, faafile, gene_info_file, out_len_dis_png
+
+def run_diamond(faa, db, db_path, outdir, threads, id=40, query_cover=40, subject_cover=40):
+    logging.info(f'{db}')
+    logging.info(f'{db_path}')
+    outfile = os.path.join(outdir, db + '.diamond.out')
+    diamond_out = run_docker.diamond_docker(faa, outfile, db_path, threads=threads, id=id, query_cover=query_cover, subject_cover=subject_cover)
+    logging.info(f'{diamond_out}')
+    if diamond_out:
+        return diamond_out
+    return outfile
+
 
 def run_rgi(fa, outdir, threads):
     logging.info('rgi')
@@ -102,6 +153,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
+    parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     parser.add_argument('-c', '--checkm', action='store_true', help='evaluate genome by checkm')
     parser.add_argument('-dp', '--db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}', help='conf_DB_path.json genome database path info')
     args = parser.parse_args()
@@ -112,6 +164,7 @@ if __name__ == '__main__':
     logfile = os.path.join(outdir, 'log')
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    taskID = args.taskID
 
     if os.path.isfile(args.db_path):
         with open(args.db_path, 'rt') as h:
@@ -119,16 +172,35 @@ if __name__ == '__main__':
         logging.info(db_path['FactorsDB'])
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
-        out_file_list = FactorsAnno(args.input, tmp_dir, db_path['FactorsDB'], args.threads, args.checkm)
 
-        for i in out_file_list:
-            if os.path.isfile(i) or os.path.isdir(i):
-                try:
-                    des_file = shutil.copy(i, args.outdir)
-                    logging.info(des_file)
-                except Exception as e:
-                    logging.error(e)
-            else:
-                logging.error(f' not exitst {i}')
+        try:
+            s = f'FactorAnno\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = FactorsAnno(args.input, tmp_dir, db_path['FactorsDB'], args.threads, args.checkm)
+            faa_file = out_file_list_tmp['file'][0]
+            out_file_list_tmp['file'].remove(faa_file)
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'FactorAnno.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'FactorAnno\tD\t'
+        except Exception as e:
+            logging.error(f'FactorAnno {e}')
+            s = f'FactorAnno\tE\t'
+
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'FactorAnno')
+        except Exception as e:
+            logging.error(f'FactorAnno status {e}')
+
+        # for i in out_file_list:
+        #     if os.path.isfile(i) or os.path.isdir(i):
+        #         try:
+        #             des_file = shutil.copy(i, args.outdir)
+        #             logging.info(des_file)
+        #         except Exception as e:
+        #             logging.error(e)
+        #     else:
+        #         logging.error(f' not exitst {i}')
     else:
         logging.error(f'not file {args.db_path}')

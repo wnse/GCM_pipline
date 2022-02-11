@@ -9,6 +9,10 @@ import numpy as np
 
 from mkdir import mkdir
 import run_docker
+from Fasta_Taxonomy import Fasta_Taxonomy
+from post_status import post_url
+from post_status import copy_file
+from post_status import write_status
 
 def run_r_tree(cg_mlst_file, outdir):
     logging.info('r cgmlst tree')
@@ -49,15 +53,15 @@ def run_chewBBACA(fa, outdir, schema_dir, training_file, cgmlstfile, threads=1):
         print(f'cg_num,cg_miss_num,cg_miss_ratio', file=h)
         print(f'{df_cg.shape[1]},{df_cg.shape[1] - find_alle_in_cg},{round(1 - find_alle_in_cg / df_cg.shape[1] , 2)}', file=h)
 
-    df_cg_tmp = df_cg
-    if df_cg.shape[0] > 2000:
-        df_cg_tmp = df_cg.head(2000)
-    df_total = df_cg_tmp.append(df_alle)[df_cg.columns]
-
-    cg_total_file = os.path.join(outdir, 'cgMLST_total.csv')
-    df_total.to_csv(cg_total_file, sep='\t')
-    tree_file = run_r_tree(cg_total_file, outdir)
-    out_file_list.append(tree_file)
+    # df_cg_tmp = df_cg
+    # if df_cg.shape[0] > 2000:
+    #     df_cg_tmp = df_cg.head(2000)
+    # df_total = df_cg_tmp.append(df_alle)[df_cg.columns]
+    #
+    # cg_total_file = os.path.join(outdir, 'cgMLST_total.csv')
+    # df_total.to_csv(cg_total_file, sep='\t')
+    # tree_file = run_r_tree(cg_total_file, outdir)
+    # out_file_list.append(tree_file)
 
     return out_file_list
 
@@ -92,10 +96,12 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
     try:
         if species in db_dict:
             logging.info(db_dict[species])
-            (cgmlst_csv, cgmlst_summary, cgmlst_tree) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
-            out_file_list['file'].extend([cgmlst_csv, cgmlst_summary, cgmlst_tree])
+            # (cgmlst_csv, cgmlst_summary, cgmlst_tree) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
+            (cgmlst_csv, cgmlst_summary) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
+
+            # out_file_list['file'].extend([cgmlst_csv, cgmlst_summary, cgmlst_tree])
+            # out_file_list['json'].update({'cgmlst_tree': os.path.split(cgmlst_tree)[1]})
             out_file_list['json'].update({'cgmlst_csv': os.path.split(cgmlst_csv)[1]})
-            out_file_list['json'].update({'cgmlst_tree': os.path.split(cgmlst_tree)[1]})
             df_tmp = pd.read_csv(cgmlst_summary).astype(str).loc[0].to_dict()
             out_file_list['json'].update({'cgmlst_summary':df_tmp})
         else:
@@ -144,10 +150,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='assembly scaffolds fasta file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
-    parser.add_argument('-s', '--species', required=True, help='species in cgMLST list')
-    parser.add_argument('-dp', '--db_path', default=f'{os.path.join(bin_dir, "cgMLST_db.csv")}',
+    parser.add_argument('-s', '--species', default=None, help='species in cgMLST list')
+    parser.add_argument('-dp', '--cgmlst_db_path', default=f'{os.path.join(bin_dir, "cgMLST_db.csv")}',
                         help='cgMLST database path for schema_seed, training file and core gene')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
+    parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
+    parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
+                        help='16S database, pre blastn index')
+    parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
+                        help='16S database taxonomy info')
+    parser.add_argument('-dg', '--db_genome', default='/Bio/tax-20200810_DB/database/genome.msh',
+                        help='genome database, mash index')
+    parser.add_argument('-ig', '--info_genome', default='/Bio/tax-20200810_DB/database/all.genome.best.info.final',
+                        help='genome database taxonomy info')
+    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
+                        help='genome database fasta file dir')
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
@@ -158,15 +175,60 @@ if __name__ == '__main__':
                         datefmt='%Y-%m-%d %H:%M:%S')
     tmp_dir = os.path.join(outdir, 'tmp_dir')
     mkdir(tmp_dir)
+    taskID = args.taskID
 
-    out_file_list = Fasta_Typing(args.input, tmp_dir, args.threads, args.db_path, args.species)
+    scaffolds_fasta_file = args.input
+    species = args.species
+    if not species:
+        try:
+            ## Taxonomy
+            s = f'Taxonomy\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = Fasta_Taxonomy(scaffolds_fasta_file, tmp_dir, args.db_16S, args.info_16S, args.db_genome, args.info_genome, args.db_genome_fa, args.threads, args.name)
+            species_file = out_file_list_tmp['file'][-1]
+            species = pd.read_csv(species_file, index_col=0, header=None).loc['species',1]
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Taxonomy.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Taxonomy\tD\t'
+        except Exception as e:
+            logging.error(f'Taxonomy {e}')
+            s = f'Taxonomy\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Taxonomy')
+        except Exception as e:
+            logging.error(f'Taxonomy status {e}')
 
-    for i in out_file_list:
-        if os.path.isfile(i) or os.path.isdir(i):
-            try:
-                des_file = shutil.copy(i, args.outdir)
-                logging.info(des_file)
-            except Exception as e:
-                logging.error(e)
-        else:
-            logging.error(f' not exitst {i}')
+    if species:
+        try:
+            ## Typing
+            s = f'Typing\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = Fasta_Typing(scaffolds_fasta_file, tmp_dir, args.threads, args.cgmlst_db_path, species)
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Typing.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Typing\tD\t'
+        except Exception as e:
+            logging.error(f'Typing {e}')
+            s = f'Typing\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Typing')
+        except Exception as e:
+            logging.error(f'Typing status {e}')
+
+
+    # out_file_list = Fasta_Typing(args.input, tmp_dir, args.threads, args.cgmlst_db_path, args.species)
+    #
+    # for i in out_file_list:
+    #     if os.path.isfile(i) or os.path.isdir(i):
+    #         try:
+    #             des_file = shutil.copy(i, args.outdir)
+    #             logging.info(des_file)
+    #         except Exception as e:
+    #             logging.error(e)
+    #     else:
+    #         logging.error(f' not exitst {i}')
+
