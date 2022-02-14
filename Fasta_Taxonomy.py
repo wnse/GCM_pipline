@@ -161,19 +161,21 @@ def merge_tax_genome_16s(tax_file_genome, tax_file_16s, outfile, name):
     logging.info('merge_tax_genome_16s')
     genus_genome, species_genome, strain_genome, ani_genome, genus_16s, species_16S = [''] * 6
     try:
-        df_16s = pd.read_csv(tax_file_16s)
-        species_16S = df_16s.loc[0,'species']
-        genus_16s = df_16s.loc[0,'lineage'].split('|')[-2].split('_')[-1]
+        if tax_file_16s:
+            df_16s = pd.read_csv(tax_file_16s)
+            species_16S = df_16s.loc[0,'species']
+            genus_16s = df_16s.loc[0,'lineage'].split('|')[-2].split('_')[-1]
     except Exception as e:
         logging.error(f'merge tax 16S {e}')
     try:
-        df_genome = pd.read_csv(tax_file_genome)
-        species_genome = df_genome.loc[0, 'Tax'].split('|')[-1].split('__')[-1]
-        if species_genome in ('', '-'):
-            species_genome = df_genome.loc[0,'Species ID']
-        genus_genome = df_genome.loc[0, 'Tax'].split('|')[-2].split('_')[-1]
-        strain_genome = df_genome.loc[0, 'Strain id']
-        ani_genome = df_genome.loc[0, 'fastANI']
+        if tax_file_genome:
+            df_genome = pd.read_csv(tax_file_genome)
+            species_genome = df_genome.loc[0, 'Tax'].split('|')[-1].split('__')[-1]
+            if species_genome in ('', '-'):
+                species_genome = df_genome.loc[0,'Species ID']
+            genus_genome = df_genome.loc[0, 'Tax'].split('|')[-2].split('_')[-1]
+            strain_genome = df_genome.loc[0, 'Strain id']
+            ani_genome = df_genome.loc[0, 'fastANI']
     except Exception as e:
         logging.error(f'merge tax genome {e}')
 
@@ -238,6 +240,7 @@ if __name__ == '__main__':
                         help='genome database taxonomy info')
     parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
                         help='genome database fasta file dir')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
 
@@ -269,9 +272,19 @@ if __name__ == '__main__':
 
         try:
             write_status(status_report, s)
-            post_url(taskID, 'Taxonomy')
+            try:
+                post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+            except Exception as e:
+                logging.error(f'post_url getTaskRunningStatus {e}')
+            # post_url(taskID, 'Taxonomy')
         except Exception as e:
             logging.error(f'Taxonomy status {e}')
+
+        if not args.debug:
+            try:
+                shutil.rmtree(tmp_dir)
+            except Exception as e:
+                logging.error(e)
 
         # for i in out_file_list:
         #     if os.path.isfile(i) or os.path.isdir(i):
@@ -284,5 +297,7 @@ if __name__ == '__main__':
         #         logging.error(f' not exitst {i}')
     else:
         logging.error(f'something missed {args.db_16S} {args.info_16S} {args.db_genome} {args.info_genome}')
+
+
 
 

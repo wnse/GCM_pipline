@@ -83,6 +83,7 @@ def run_antismash(fa, outdir, threads):
 
 
 def process_kegg(diamond_out, db_info, outfile, col_list=[0,1]):
+    logging.info(f'process_{diamond_out}')
     try:
         df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
         if df_diamond.empty:
@@ -103,6 +104,7 @@ def process_kegg(diamond_out, db_info, outfile, col_list=[0,1]):
         logging.error(e)
 
 def process_phi(diamond_out, db_info, outfile):
+    logging.info('process_phi')
     try:
         df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
         df_subject = pd.read_csv(db_info, header=None, sep='#', index_col=1)
@@ -113,6 +115,7 @@ def process_phi(diamond_out, db_info, outfile):
         logging.error(e)
 
 def process_cazy(diamond_out, db_info, outfile):
+    logging.info('process_cazy')
     try:
         df_diamond = pd.read_csv(diamond_out, sep='\t', header=None, index_col=0)
         # df_subject = pd.read_csv(db_info, header=None, sep='#', index_col=1)
@@ -124,6 +127,7 @@ def process_cazy(diamond_out, db_info, outfile):
         logging.error(e)
 
 def process_cog(diamond_out, db_info, outfile):
+    logging.info('process_cog')
     try:
         gi_file, class_file = db_info.split()
         df_diamond = pd.read_csv(diamond_out, sep='\t', header=None)
@@ -238,6 +242,7 @@ if __name__ == '__main__':
     parser.add_argument('-dp', '--db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}', help='conf_DB_path.json genome database path info')
     parser.add_argument('-con_db_path', '--con_db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}',
                         help='conf_DB_path.json genome database path info')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
@@ -259,11 +264,16 @@ if __name__ == '__main__':
         status_report = os.path.join(outdir, 'status_report.txt')
 
         faa_file = None
+        if os.path.isfile(args.con_db_path):
+            with open(args.con_db_path, 'rt') as h:
+                con_db_path = json.load(h)
+        else:
+            logging.info(f'{args.con_db_path} not exists')
         try:
             ## FactorAnno
             s = f'FactorAnno\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = FactorsAnno(scaffolds_fasta_file, tmp_dir, con_db_path['FactorsDB'], args.threads)
+            out_file_list_tmp = FactorsAnno(args.input, tmp_dir, con_db_path['FactorsDB'], args.threads)
             faa_file = out_file_list_tmp['file'][0]
             out_file_list_tmp['file'].remove(faa_file)
             copy_file(out_file_list_tmp['file'], outdir)
@@ -273,6 +283,10 @@ if __name__ == '__main__':
         except Exception as e:
             logging.error(f'FactorAnno {e}')
             s = f'FactorAnno\tE\t'
+        try:
+            write_status(status_report, s)
+        except Exception as e:
+            logging.error(f'FactorAnno status {e}')
 
         try:
             s = f'GeneAnno\tR\t'
@@ -290,9 +304,19 @@ if __name__ == '__main__':
 
         try:
             write_status(status_report, s)
+            try:
+                post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+            except Exception as e:
+                logging.error(f'post_url getTaskRunningStatus {e}')
             # post_url(taskID, 'GeneAnno')
         except Exception as e:
             logging.error(f'GeneAnno status {e}')
+
+        if not args.debug:
+            try:
+                shutil.rmtree(tmp_dir)
+            except Exception as e:
+                logging.error(e)
 
         # for i in out_file_list:
         #     if os.path.isfile(i) or os.path.isdir(i):

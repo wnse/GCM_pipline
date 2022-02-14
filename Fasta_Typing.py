@@ -6,6 +6,7 @@ import argparse
 import shutil
 import pandas as pd
 import numpy as np
+import json
 
 from mkdir import mkdir
 import run_docker
@@ -165,6 +166,8 @@ if __name__ == '__main__':
                         help='genome database taxonomy info')
     parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
                         help='genome database fasta file dir')
+    parser.add_argument('-debug', '--debug', action='store_true')
+    parser.add_argument('-n', '--name', default='test', help='sample name')
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
@@ -173,6 +176,7 @@ if __name__ == '__main__':
     logfile = os.path.join(outdir, 'log')
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    status_report = os.path.join(outdir, 'status_report.txt')
     tmp_dir = os.path.join(outdir, 'tmp_dir')
     mkdir(tmp_dir)
     taskID = args.taskID
@@ -196,7 +200,6 @@ if __name__ == '__main__':
             s = f'Taxonomy\tE\t'
         try:
             write_status(status_report, s)
-            post_url(taskID, 'Taxonomy')
         except Exception as e:
             logging.error(f'Taxonomy status {e}')
 
@@ -215,10 +218,19 @@ if __name__ == '__main__':
             s = f'Typing\tE\t'
         try:
             write_status(status_report, s)
-            post_url(taskID, 'Typing')
+            try:
+                post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+            except Exception as e:
+                logging.error(f'post_url getTaskRunningStatus {e}')
+            # post_url(taskID, 'Typing')
         except Exception as e:
             logging.error(f'Typing status {e}')
 
+    if not args.debug:
+        try:
+            shutil.rmtree(tmp_dir)
+        except Exception as e:
+            logging.error(e)
 
     # out_file_list = Fasta_Typing(args.input, tmp_dir, args.threads, args.cgmlst_db_path, args.species)
     #

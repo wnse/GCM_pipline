@@ -1,4 +1,5 @@
 import os
+import shutil
 import multiprocessing
 import argparse
 import logging
@@ -102,6 +103,10 @@ def FactorsAnno(fa, outdir, db_path, threads, checkm=False, faafile=None):
     out_file_list = {}
     out_file_list['json'] = {}
     out_file_list['file'] = []
+    genome_size = 0
+    with open(fa, 'rt') as h:
+        for seq in SeqIO.parse(h, 'fasta'):
+            genome_size += len(seq.seq)
     if checkm:
         _, checkm_outfile_csv = run_checkm(fa, outdir, threads)
         if checkm_outfile_csv:
@@ -118,6 +123,7 @@ def FactorsAnno(fa, outdir, db_path, threads, checkm=False, faafile=None):
             out_file_list['file'].append(gene_info_file)
             out_file_list['file'].append(out_len_dis_png)
             df_tmp = pd.read_csv(gene_info_file, header=None, index_col=0)[1].astype(str).to_dict()
+            df_tmp['genome_size'] = str(genome_size)
             out_file_list['json'].update({'gene_info_summary':df_tmp})
             out_file_list['json'].update({'gene_predicted_dir':os.path.split(prodigal_dir)[1]})
             out_file_list['json'].update({'gene_len_dis_png': os.path.split(out_len_dis_png)[1]})
@@ -156,6 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     parser.add_argument('-c', '--checkm', action='store_true', help='evaluate genome by checkm')
     parser.add_argument('-dp', '--db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}', help='conf_DB_path.json genome database path info')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
@@ -165,6 +172,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     taskID = args.taskID
+    status_report = os.path.join(outdir, 'status_report.txt')
 
     if os.path.isfile(args.db_path):
         with open(args.db_path, 'rt') as h:
@@ -189,9 +197,19 @@ if __name__ == '__main__':
 
         try:
             write_status(status_report, s)
-            post_url(taskID, 'FactorAnno')
+            try:
+                post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+            except Exception as e:
+                logging.error(f'post_url getTaskRunningStatus {e}')
+            # post_url(taskID, 'FactorAnno')
         except Exception as e:
             logging.error(f'FactorAnno status {e}')
+
+        if not args.debug:
+            try:
+                shutil.rmtree(tmp_dir)
+            except Exception as e:
+                logging.error(e)
 
         # for i in out_file_list:
         #     if os.path.isfile(i) or os.path.isdir(i):

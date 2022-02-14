@@ -116,11 +116,17 @@ def Fastq_Assemble(fq1, fq2, outdir, threads, sampleTag='test', fastqc=None):
     out_file_list = {}
     out_file_list['json'] = {}
     out_file_list['file'] = []
-    if fastqc:
-        fq_cor_1, fq_cor_2 = fq1, fq2
-    else:
-        [fq_cor_1, fq_cor_2], qc_out_file = Fastq_QC.Fastq_QC(fq1, fq2, outdir, threads=threads)
-        out_file_list['json'].update(qc_out_file)
+    # if fastqc:
+    fq_cor_1, fq_cor_2 = fq1, fq2
+    # else:
+    #     # [fq_cor_1, fq_cor_2], qc_out_file = Fastq_QC.Fastq_QC(fq1, fq2, outdir, threads=threads)
+    #     # out_file_list['json'].update(qc_out_file)
+    #     [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC.Fastq_QC(fq1, fq2, outdir, threads=threads)
+    #     fastqc_json = os.path.join(outdir, 'Fastqc.json')
+    #     with open(fastqc_json, 'w') as H:
+    #         json.dump(out_file_list_tmp['json'], H, indent=2)
+    #     out_file_list['file'].extend(out_file_list_tmp['file'])
+    #     out_file_list['file'].append(fastqc_json)
     # fq_cor_1, fq_cor_2 = (fq1, fq2)
     # fq_cor_1 = os.path.join(outdir, 'musket_dir', 'trime_corrected.1.fastq') #test
     # fq_cor_2 = os.path.join(outdir, 'musket_dir', 'trime_corrected.2.fastq') #test
@@ -167,7 +173,7 @@ def Fastq_Assemble(fq1, fq2, outdir, threads, sampleTag='test', fastqc=None):
         else:
             logging.info('assemble error')
     else:
-        logging.info('Fastq_Assemble trim error')
+        logging.info(f'Fastq_Assemble {fq1} or {fq2} error')
     return out_file_list
 
 def exit_now(input):
@@ -183,6 +189,8 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for fastqc')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
+    parser.add_argument('-Nqc', '--Nqc', action='store_true')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
@@ -196,12 +204,35 @@ if __name__ == '__main__':
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
         status_report = os.path.join(outdir, 'status_report.txt')
+
+        fq1 = args.input[0]
+        fq2 = args.input[1]
+        if not args.Nqc:
+            try:
+                ## Fastqc
+                s = f'Fastqc\tR\t'
+                write_status(status_report, s)
+                [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC.Fastq_QC(args.input[0], args.input[1], tmp_dir,threads=args.threads)
+                copy_file(out_file_list_tmp['file'], outdir)
+                with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
+                    json.dump(out_file_list_tmp['json'], H, indent=2)
+                s = f'Fastqc\tD\t'
+                fq1 = fq_cor_1
+                fq2 = fq_cor_2
+            except Exception as e:
+                logging.error(f'Fastqc {e}')
+                s = f'Fastqc\tE\t'
+            try:
+                write_status(status_report, s)
+            except Exception as e:
+                logging.error(f'Fastqc status {e}')
+
         ## Assembly
         scaffolds_fasta_file = ''
         try:
             s = f'Assembly\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(args.input[0], args.input[1], tmp_dir, args.threads, sampleTag=args.name)
+            out_file_list_tmp = Fastq_Assemble(fq1, fq2, tmp_dir, args.threads, sampleTag=args.name)
             scaffolds_fasta_file = out_file_list_tmp['file'][-1]
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
@@ -212,9 +243,19 @@ if __name__ == '__main__':
             s = f'Assembly\tE\t'
         try:
             write_status(status_report, s)
-            post_url(taskID, 'Assembly')
+            try:
+                post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+            except Exception as e:
+                logging.error(f'post_url getTaskRunningStatus {e}')
+            # post_url(taskID, 'Assembly')
         except Exception as e:
             logging.error(f'Assembly status {e}')
+
+        if not args.debug:
+            try:
+                shutil.rmtree(tmp_dir)
+            except Exception as e:
+                logging.error(e)
 
         # for i in out_file_list:
         #     if os.path.isfile(i) or os.path.isdir(i):
@@ -227,3 +268,4 @@ if __name__ == '__main__':
         #         logging.error(f' not exitst {i}')
     except Exception as e:
         logging.error(e)
+

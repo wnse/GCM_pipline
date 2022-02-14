@@ -218,6 +218,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for fastqc')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
+    parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
 
@@ -245,10 +246,19 @@ if __name__ == '__main__':
         s = f'Fastqc\tE\t'
     try:
         write_status(status_report, s)
-        post_url(taskID, 'Fastqc')
+        try:
+            post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+        except Exception as e:
+            logging.error(f'post_url getTaskRunningStatus {e}')
+        # post_url(taskID, 'Fastqc')
     except Exception as e:
         logging.error(f'Fastqc status {e}')
 
+    if not args.debug:
+        try:
+            shutil.rmtree(tmp_dir)
+        except Exception as e:
+            logging.error(e)
     # try:
         # clean_fq_list, out_file_list = Fastq_QC(args.input[0], args.input[1], tmp_dir, args.threads)
         # if out_file_list['file']:
@@ -267,3 +277,4 @@ if __name__ == '__main__':
         #         logging.error(f' not exitst {i}')
     # except Exception as e:
     #     logging.error(e)
+

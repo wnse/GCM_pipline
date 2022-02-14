@@ -1,10 +1,11 @@
 {
   "gene_info_summary": {
-    "total_gene_num": "4692.0",
-    "total_gene_len": "4318317.0",
-    "avg_gene_len": "920.3574168797954",
-    "avg_inter_len": "122.115515771526",
-    "partial_gene_ratio": "0.0223785166240409"
+    "total_gene_num": "4573.0",
+    "total_gene_len": "4419198.0",
+    "avg_gene_len": "966.3673737152852",
+    "avg_inter_len": "133.33982068663897",
+    "partial_gene_ratio": "0.0150885633063634",
+    "genome_size": "5061368"
   },
   "gene_predicted_dir": "prodigal_dir",
   "gene_len_dis_png": "prodigal_gene_len.png",

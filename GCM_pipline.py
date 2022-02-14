@@ -19,11 +19,13 @@ from post_status import post_url
 from post_status import copy_file
 from post_status import write_status
 
-def exit_now(input):
+def exit_now_fqPE(input):
     if len(input) != 2:
         sys.exit('input fastq must be R1 & R2')
 
-
+def exit_now_fa(input):
+    if len(input) != 1:
+        sys.exit('input fasta should be 1')
 
 
 
@@ -57,73 +59,80 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.type == 'fastqPE':
-        exit_now(args.input)
+        exit_now_fqPE(args.input)
+    else:
+        exit_now_fa(args.input)
+
     if os.path.isfile(args.con_db_path):
         with open(args.con_db_path, 'rt') as h:
             con_db_path = json.load(h)
+
     db_anno_list = args.db_list
     outdir = args.outdir
     taskID = args.taskID
     status_report = os.path.join(outdir, 'status_report.txt')
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
+    tmp_dir = None
+    scaffolds_fasta_file = None
 
     try:
         mkdir(outdir)
         logfile = os.path.join(outdir, 'log')
         logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        logging.info(f'{vars(args)}')
         logging.info('Analysis Start')
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
     except Exception as e:
         logging.error(e)
 
+    if args.type == 'fastqPE':
+        fq_cor_1, fq_cor_2 = ('', '')
+        try:
+            ## Fastqc
+            s = f'Fastqc\tR\t'
+            write_status(status_report, s)
+            [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC(args.input[0], args.input[1], tmp_dir, threads=args.threads)
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Fastqc\tD\t'
+        except Exception as e:
+            logging.error(f'Fastqc {e}')
+            s = f'Fastqc\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Fastqc')
+        except Exception as e:
+            logging.error(f'Fastqc status {e}')
 
-    fq_cor_1, fq_cor_2 = ('', '')
-    try:
-        ## Fastqc
-        s = f'Fastqc\tR\t'
-        write_status(status_report, s)
-        [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC(args.input[0], args.input[1], tmp_dir, threads=args.threads)
-        copy_file(out_file_list_tmp['file'], outdir)
-        with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
-            json.dump(out_file_list_tmp['json'], H, indent=2)
-        s = f'Fastqc\tD\t'
-    except Exception as e:
-        logging.error(f'Fastqc {e}')
-        s = f'Fastqc\tE\t'
-    try:
-        write_status(status_report, s)
-        post_url(taskID, 'Fastqc')
-    except Exception as e:
-        logging.error(f'Fastqc status {e}')
+        ## Assembly
+        scaffolds_fasta_file = ''
+        if fq_cor_1 and fq_cor_2:
+            logging.info(f'{fq_cor_1}')
+            logging.info(f'{fq_cor_2}')
+        else:
+            fq_cor_1, fq_cor_2 = args.input[0], args.input[1]
+        try:
+            s = f'Assembly\tR\t'
+            write_status(status_report, s)
+            out_file_list_tmp = Fastq_Assemble(fq_cor_1, fq_cor_2, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
+            scaffolds_fasta_file = out_file_list_tmp['file'][-1]
+            copy_file(out_file_list_tmp['file'], outdir)
+            with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
+                json.dump(out_file_list_tmp['json'], H, indent=2)
+            s = f'Assembly\tD\t'
+        except Exception as e:
+            logging.error(f'Assembly {e}')
+            s = f'Assembly\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Assembly')
+        except Exception as e:
+            logging.error(f'Assembly status {e}')
 
-    ## Assembly
-    scaffolds_fasta_file = ''
-    if fq_cor_1 and fq_cor_2:
-        logging.info(f'{fq_cor_1}')
-        logging.info(f'{fq_cor_2}')
-    else:
-        fq_cor_1, fq_cor_2 = args.input[0], args.input[1]
-    try:
-        s = f'Assembly\tR\t'
-        write_status(status_report, s)
-        out_file_list_tmp = Fastq_Assemble(fq_cor_1, fq_cor_2, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
-        scaffolds_fasta_file = out_file_list_tmp['file'][-1]
-        copy_file(out_file_list_tmp['file'], outdir)
-        with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
-            json.dump(out_file_list_tmp['json'], H, indent=2)
-        s = f'Assembly\tD\t'
-    except Exception as e:
-        logging.error(f'Assembly {e}')
-        s = f'Assembly\tE\t'
-    try:
-        write_status(status_report, s)
-        post_url(taskID, 'Assembly')
-    except Exception as e:
-        logging.error(f'Assembly status {e}')
-
-    # scaffolds_fasta_file = '/home/imcas/yangkai_test/Pipline/testout/tmp_dir/test.scaffolds.fasta'
-    # species = 'Vibrio parahaemolyticus'
+    if args.type == 'fa':
+        scaffolds_fasta_file = args.input[0]
     species = None
     faa_file = None
     if scaffolds_fasta_file:
@@ -215,7 +224,3 @@ if __name__ == '__main__':
             shutil.rmtree(tmp_dir)
         except Exception as e:
             logging.error(e)
-
-
-
-
