@@ -28,7 +28,10 @@ def get_gff_info(gfffile, outfile, outpng):
     df['end'] = df['end'].astype(float)
     df['len'] = df['end'] - df['start'] + 1
     try:
-        plot_len_dis(df['len'], outpng, xlabel='Gene Length')
+        max_len = 3000
+        len_tmp = df['len'].copy()
+        len_tmp[len_tmp>max_len] = max_len
+        plot_len_dis(len_tmp, outpng, xlabel='Gene Length')
     except Exception as e:
         logging.error(f'plot len dist {e}')
     total_gene = df.shape[0]

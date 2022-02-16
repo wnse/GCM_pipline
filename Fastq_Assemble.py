@@ -81,7 +81,7 @@ def run_picard_CIAM(sortbam, outdir):
                         size_lst.extend([int(tmp[0])] * int(tmp[1]))
                 if re.match('insert_size', i):
                     check = 1
-        plot_len_dis(size_lst, outpng, xmax=size_lst[-1], xlabel='Insert Length')
+        plot_len_dis(size_lst, outpng, xlabel='Insert Length')
     except Exception as e:
         logging.error(e)
     logging.info(picard_out)

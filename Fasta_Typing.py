@@ -95,10 +95,16 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
     out_file_list['file'] = []
     db_dict = pd.read_csv(schema_path, index_col=0).to_dict(orient='index')
     try:
+        species_used = None
         if species in db_dict:
-            logging.info(db_dict[species])
+            species_used = species
+        else:
+            if species.split()[0] in db_dict:
+                species_used = species.split()[0]
+        if species_used in db_dict:
+            logging.info(db_dict[species_used])
             # (cgmlst_csv, cgmlst_summary, cgmlst_tree) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
-            (cgmlst_csv, cgmlst_summary) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
+            (cgmlst_csv, cgmlst_summary) = run_chewBBACA(fa, outdir, db_dict[species_used]['schema_seed'], db_dict[species_used]['training_file'], db_dict[species_used]['cgFile'], threads)
 
             # out_file_list['file'].extend([cgmlst_csv, cgmlst_summary, cgmlst_tree])
             # out_file_list['json'].update({'cgmlst_tree': os.path.split(cgmlst_tree)[1]})

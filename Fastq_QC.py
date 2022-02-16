@@ -1,5 +1,6 @@
 import json
 import multiprocessing
+from multiprocessing import Pool
 import os
 import shutil
 import argparse
@@ -17,7 +18,26 @@ from post_status import post_url
 from post_status import copy_file
 from post_status import write_status
 
-def cal_q20(f):
+
+def cal_q20_by_seq(seq_list):
+    total_reads = 0
+    total_base = 0
+    q20 = 0
+    q30 = 0
+    gc = 0
+    for rec in seq_list:
+        a = rec.letter_annotations['phred_quality']
+        q20 += sum(i > 20 for i in a)
+        q30 += sum(i > 30 for i in a)
+        gc += sum(i in ['G', 'C', 'g', 'c'] for i in rec.seq)
+        total_base += len(a)
+        total_reads += 1
+    return total_reads, total_base, q20, q30, gc
+
+def cal_q20(f, threads=1, max_seq_per_t=1000000):
+    threads = int(threads)
+    if threads > 30:
+        threads = 30
     ft = file_type(f)
     if ft == 'FQ':
         open_file = open
@@ -30,14 +50,37 @@ def cal_q20(f):
     q20 = 0
     q30 = 0
     gc = 0
+    results = []
+    pool = Pool(processes=threads)
     with open_file(f, 'rt') as handle:
+        if threads > 1:
+            for rec in SeqIO.parse(handle, 'fastq'):
+                total_reads += 1
+            tmp = total_reads/threads
+            max_seq_per_t = (total_reads - int(tmp) * threads) + tmp
+    with open_file(f, 'rt') as handle:
+        tmp_seq_list = []
+        total_reads = 0
         for rec in SeqIO.parse(handle, 'fastq'):
-            a = rec.letter_annotations['phred_quality']
-            q20 += sum(i > 20 for i in a)
-            q30 += sum(i > 30 for i in a)
-            gc += sum(i in ['G','C', 'g', 'c'] for i in rec.seq)
-            total_base += len(a)
-            total_reads += 1
+            tmp_seq_list.append(rec)
+            if len(tmp_seq_list) >= max_seq_per_t:
+                result = pool.apply_async(cal_q20_by_seq, (tmp_seq_list,))
+                results.append(result)
+                tmp_seq_list = []
+        if tmp_seq_list:
+            result = pool.apply_async(cal_q20_by_seq, (tmp_seq_list,))
+            results.append(result)
+        pool.close()
+        pool.join()
+
+        for res in results:
+            total_reads_tmp, total_base_tmp, q20_tmp, q30_tmp, gc_tmp = res.get()
+            q20 += q20_tmp
+            q30 += q30_tmp
+            gc += gc_tmp
+            total_base += total_base_tmp
+            total_reads += total_reads_tmp
+
     return total_reads, total_base, q20/total_base, q30/total_base, gc/total_base
 
 def cal_avg_len(f):
@@ -56,12 +99,7 @@ def cal_avg_len(f):
             reads += 1
     return total/reads
 
-def run_cal_q20(fq_path_list, name_list=[]):
-    # q20 = []
-    # q30 = []
-    # total_reads = []
-    # total_base = []
-    # gc = []
+def run_cal_q20(fq_path_list, name_list=[], threads=1):
     total_info = {}
     logging.info('q20 start')
     for i, file in enumerate(fq_path_list):
@@ -70,17 +108,11 @@ def run_cal_q20(fq_path_list, name_list=[]):
         else:
             name = get_file_name(file)
         if name:
-            total_reads_tmp, total_base_tmp, q20_tmp, q30_tmp, gc_tmp = cal_q20(file)
-        # q20.append(q20_tmp)
-        # q30.append(q30_tmp)
-        # total_reads.append(total_reads_tmp)
-        # total_base.append(total_base_tmp)
-        # gc.append(gc_tmp)
+            total_reads_tmp, total_base_tmp, q20_tmp, q30_tmp, gc_tmp = cal_q20(file, threads=threads)
             avg_tmp = total_base_tmp / total_reads_tmp
             total_info[name] = dict(zip(['total_reads', 'total_bases', 'Q20', 'Q30', 'GC', 'average_length'],
                                         [str(total_reads_tmp), str(total_base_tmp), str(q20_tmp), str(q30_tmp), str(gc_tmp), str(avg_tmp)]))
     logging.info('q20 end')
-    # return total_reads, total_base, q20, q30, gc
     return total_info
 
 def run_fastqc(fq_path_list, outdir, threads):
@@ -131,7 +163,13 @@ def run_genomescope(histo_file, outdir, read_length):
 
 def get_file_name(file):
     f = os.path.split(file)[1]
-    if re.match('(\S+)\.fq', f):
+    if re.match('(\S+\.fq\S+).gz', f) or re.match('(\S+\.fastq\S+).gz', f):
+        return re.match('(\S+).gz', f).group(1)
+    elif re.match('(\S+)\.fq.gz', f):
+        return re.match('(\S+)\.fq.gz', f).group(1)
+    elif re.match('(\S+)\.fastq.gz', f):
+        return re.match('(\S+)\.fastq.gz', f).group(1)
+    elif re.match('(\S+)\.fq', f):
         return re.match('(\S+)\.fq', f).group(1)
     elif re.match('(\S+)\.fastq', f):
         return re.match('(\S+)\.fastq', f).group(1)
@@ -157,7 +195,7 @@ def Fastq_QC(fq1, fq2, outdir, threads):
     except Exception as e:
         logging.error(e)
     try:
-        fastqc_sta_raw = run_cal_q20([fq1, fq2])
+        fastqc_sta_raw = run_cal_q20([fq1, fq2], threads=threads)
     except Exception as e:
         logging.error(e)
 
@@ -171,9 +209,9 @@ def Fastq_QC(fq1, fq2, outdir, threads):
         if fq_cor_1 and fq_cor_2:
             jellyfish_out, histo_file = run_jellyfish(fq_cor_1, outdir, threads)
             read_length = cal_avg_len(fq_cor_1)
-            fastqc_sta_clean = run_cal_q20([fq_cor_1, fq_cor_2], name_list=[get_file_name(fq1), get_file_name(fq2)])
-            if jellyfish_out:
-                logging.info(f'jellyfish error {jellyfish_out}')
+            fastqc_sta_clean = run_cal_q20([fq_cor_1, fq_cor_2], name_list=[get_file_name(fq1), get_file_name(fq2)], threads=threads)
+            # if jellyfish_out:
+            #     logging.info(f'jellyfish error {jellyfish_out}')
         else:
             jellyfish_out, histo_file = run_jellyfish(fq_trime_1, outdir, threads)
             read_length = cal_avg_len(fq_trime_1)

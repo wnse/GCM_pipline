@@ -54,13 +54,17 @@ def fasta2gcCover(fa, genomecov_file, outfile='test_gc_cover.png', winsize=500, 
     cover_avg = []
     n_num = 0
     try:
+        check = 0
         for seq in SeqIO.parse(fa, 'fasta'):
+            if check > 10:
+                break
             len_list.append(len(seq.seq))
             total_gc_ratio_tmp , gc_ratio_tmp = cal_gc(seq.seq)
             total_gc_ratio.append(total_gc_ratio_tmp)
             gc_ratio.extend(gc_ratio_tmp)
             cover_avg.extend(get_depth(genomecov_file, seq.id, len(seq.seq)))
             n_num += len([i for i in seq.seq if i in['n','N']])
+            check += 1
         plot_gcCover(gc_ratio, cover_avg, outfile)
     except Exception as e:
         logging.error(f'fasta2gcCover {e}')
@@ -77,10 +81,10 @@ def fasta2gcCover(fa, genomecov_file, outfile='test_gc_cover.png', winsize=500, 
             df.to_csv(genome_info, header=None)
     return genome_info
 
-def plot_len_dis(lst, outfile, xmax=3000, xlabel=''):
+def plot_len_dis(lst, outfile, xlabel=''):
     try:
         g = sns.displot(lst)
-        g.set(xlim=(0,xmax))
+        # g.set(xlim=(0,xmax))
         plt.xlabel(xlabel)
         plt.savefig(outfile, dpi=300)
         plt.close()
