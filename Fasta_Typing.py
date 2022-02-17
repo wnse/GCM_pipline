@@ -15,16 +15,6 @@ from post_status import post_url
 from post_status import copy_file
 from post_status import write_status
 
-def run_r_tree(cg_mlst_file, outdir):
-    logging.info('r cgmlst tree')
-    outfile = os.path.join(outdir, 'cgMLST.tree')
-    r_script = os.path.join(bin_dir, 'R_cgMLST_tree.r')
-    logfile = os.path.join(outdir, 'r.log')
-    r_out = run_docker.r_docker('Rscript', r_script, cg_mlst_file, outfile, f'>{logfile} 2>&1')
-    logging.info(f'{r_out}')
-    if r_out:
-        return 0
-    return outfile
 
 def run_chewBBACA(fa, outdir, schema_dir, training_file, cgmlstfile, threads=1):
     out_file_list = []
@@ -108,6 +98,7 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
 
             # out_file_list['file'].extend([cgmlst_csv, cgmlst_summary, cgmlst_tree])
             # out_file_list['json'].update({'cgmlst_tree': os.path.split(cgmlst_tree)[1]})
+            out_file_list['file'].extend([cgmlst_csv, cgmlst_summary])
             out_file_list['json'].update({'cgmlst_csv': os.path.split(cgmlst_csv)[1]})
             df_tmp = pd.read_csv(cgmlst_summary).astype(str).loc[0].to_dict()
             out_file_list['json'].update({'cgmlst_summary':df_tmp})
