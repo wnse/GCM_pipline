@@ -102,25 +102,34 @@ def cal_ANI(fa1, fa2, outdir, threads=1):
     tmp_out = run_docker.fastANI_docker(fa1, fa2, outfile, threads=threads)
     logging.info(f'{tmp_out}')
     if tmp_out == 0:
-        with open(outfile, 'rt') as h:
-            ani_value = h.readline().strip().split('\t')[2]
-            res_ani_total['fastANI'] = ani_value
+        try:
+            with open(outfile, 'rt') as h:
+                ani_value = h.readline().strip().split('\t')[2]
+                res_ani_total['fastANI'] = ani_value
+        except Exception as e:
+            logging.error(e)
 
     logging.info('cal ANI: OrthoANI')
     outfile = os.path.join(outdir, 'OrthoANI.out')
     tmp_out = run_docker.OrthoANI_docker(fa1, fa2, outfile, threads=threads)
     logging.info(f'{tmp_out}')
     if tmp_out == 0:
-        with open(outfile, 'rt') as h:
-            res_ani_total['OrthoANI'] = [i.split(' ')[2] for i in h.readlines() if re.match('OrthoANI :', i)][-1]
+        try:
+            with open(outfile, 'rt') as h:
+                res_ani_total['OrthoANI'] = [i.split(' ')[2] for i in h.readlines() if re.match('OrthoANI :', i)][-1]
+        except Exception as e:
+            logging.error(e)
 
     logging.info('cal ANI: OAU')
     outfile = os.path.join(outdir, 'OAU.out')
     tmp_out = run_docker.OAU_docker(fa1, fa2, outfile, threads=threads)
     logging.info(f'{tmp_out}')
     if tmp_out == 0:
-        with open(outfile, 'rt') as h:
-            res_ani_total['OAU'] = h.readlines()[-1].split('\t')[1]
+        try:
+            with open(outfile, 'rt') as h:
+                res_ani_total['OAU'] = h.readlines()[-1].split('\t')[1]
+        except Exception as e:
+            logging.error(e)
 
     # outfile = os.path.join(outdir, 'ANI.out')
     # tmp_out = run_docker.ANI_docker(fa1, fa2, outfile, threads=threads)
