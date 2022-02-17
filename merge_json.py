@@ -21,6 +21,7 @@ def merge_json(json_list, name_list):
             except Exception as e:
                 logging.error(f'{j} {e}')
             tmp['sampleID'] = name_list[i]
+            tmp['samplePath'] = os.path.split(j)[0]
             total_json['samples'].append(tmp)
     return total_json
 
@@ -36,6 +37,7 @@ def run_r_tree(cg_mlst_file, outdir):
     return outfile
 
 def make_cg_tree(cg_file_list, name_list, outdir):
+    logging.info('merge_cg_tree')
     df_total = pd.DataFrame()
     for i, cg_file in enumerate(cg_file_list):
         df_tmp = pd.read_csv(cg_file, index_col=0, sep='\t')
@@ -46,6 +48,7 @@ def make_cg_tree(cg_file_list, name_list, outdir):
         df_total = df_total.append(df_tmp)
 
     cg_total_file = os.path.join(outdir, 'cgMLST_total.csv')
+    df_total = df_total.rename_axis(index='FILE')
     df_total.to_csv(cg_total_file, sep='\t')
     tree_file = run_r_tree(cg_total_file, outdir)
     return tree_file, cg_total_file
@@ -112,11 +115,14 @@ def merge(dir_list, name_list, outdir='./', type='Fastqc'):
             cgfile_list, name_list_tmp = get_file_list(dir_list, name_list, "results_alleles.tsv")
             out_tree_file, out_cgMLST_file = None, None
             if cgfile_list:
-                out_tree_file, out_cgMLST_file =  make_cg_tree(cgfile_list, name_list_tmp, outdir)
+                try:
+                    out_tree_file, out_cgMLST_file =  make_cg_tree(cgfile_list, name_list_tmp, outdir)
+                except Exception as e:
+                    logging.error(f'make_cg_tree {e}')
             else:
                 logging.info(f'no file for cgMLST')
             if out_cgMLST_file:
-                total_json_dict['batch'].update({'cgMLST_file': os.path.split(out_tree_file)[1]})
+                total_json_dict['batch'].update({'cgMLST_file': os.path.split(out_cgMLST_file)[1]})
             if out_tree_file:
                 total_json_dict['batch'].update({'cgMLST_tree': os.path.split(out_tree_file)[1]})
 
