@@ -13,6 +13,7 @@ from mkdir import mkdir
 from Fastq_Assemble import run_checkm
 from plot_gc_cover import plot_len_dis
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -151,11 +152,10 @@ def FactorsAnno(fa, outdir, db_path, threads, checkm=False, faafile=None):
     return out_file_list
 
 
-
-cpu_num = multiprocessing.cpu_count()
-bin_dir = os.path.split(os.path.realpath(__file__))[0]
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='genome fasta file')
@@ -176,7 +176,7 @@ if __name__ == '__main__':
                         datefmt='%Y-%m-%d %H:%M:%S')
     taskID = args.taskID
     status_report = os.path.join(outdir, 'status_report.txt')
-
+    post_pid(taskID)
     if os.path.isfile(args.db_path):
         with open(args.db_path, 'rt') as h:
             db_path = json.load(h)

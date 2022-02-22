@@ -45,6 +45,13 @@ def write_status(f, s):
     with open(f, 'a') as h:
         print(f'{now}\t{s}', file=h)
 
+def post_pid(taskID):
+    try:
+        pid = os.getpid()
+        post_url(taskID, str(pid), 'http://localhost/task/getTaskPid/')
+    except Exception as e:
+        logging.error(f'post_url getTaskPid {e}')
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

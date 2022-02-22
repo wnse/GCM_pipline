@@ -12,6 +12,7 @@ from mkdir import mkdir
 import run_docker
 from Fasta_Taxonomy import Fasta_Taxonomy
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -142,9 +143,12 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
         logging.error(f'Fasta_Typing mlst {e}')
     return out_file_list
 
-cpu_num = multiprocessing.cpu_count()
-bin_dir = os.path.split(os.path.realpath(__file__))[0]
+
 if __name__ == '__main__':
+    cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
+    bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='assembly scaffolds fasta file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
@@ -177,7 +181,7 @@ if __name__ == '__main__':
     tmp_dir = os.path.join(outdir, 'tmp_dir')
     mkdir(tmp_dir)
     taskID = args.taskID
-
+    post_pid(taskID)
     scaffolds_fasta_file = args.input
     species = args.species
     if not species:

@@ -15,6 +15,7 @@ from mkdir import mkdir
 from plot_gc_cover import fasta2gcCover
 from plot_gc_cover import plot_len_dis
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -182,6 +183,8 @@ def exit_now(input):
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
@@ -195,6 +198,7 @@ if __name__ == '__main__':
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
     taskID = args.taskID
+    post_pid(taskID)
     try:
         exit_now(args.input)
         outdir = args.outdir

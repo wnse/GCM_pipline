@@ -15,6 +15,7 @@ from Fasta_FactorAnno import run_prodigal
 from Fasta_FactorAnno import FactorsAnno
 from Fastq_Assemble import run_checkm
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -177,6 +178,7 @@ def FunctionAnno(fa, outdir, db_path, db_info, threads, db_list, faafile=None):
     # antisamsh_dir = run_antismash(fa, outdir, threads)
     # out_file_list.append(antisamsh_dir)
     if faafile:
+        out_file_list['json']['gene_anno_csv'] = {}
         gene_count = len(list(SeqIO.parse(faafile, 'fasta')))
         anno_count = {}
         for db in db_list:
@@ -191,29 +193,24 @@ def FunctionAnno(fa, outdir, db_path, db_info, threads, db_list, faafile=None):
                         if db in ['kegg', 'MetaCyc'] and db in db_info:
                             outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_kegg(diamond_out, db_info[db], outfile)
-                            out_file_list['file'].append(outfile)
                         if db in ['NR'] and db in db_info:
                             outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_kegg(diamond_out, db_info[db], outfile, col_list=[0, 1, 2, 3])
-                            out_file_list['file'].append(outfile)
                         if db in ['SwissProt'] and db in db_info:
                             outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_kegg(diamond_out, db_info[db], outfile, col_list=[0, 1, 2, 5])
-                            out_file_list['file'].append(outfile)
                         if db in ['PHI'] and db in db_info:
                             outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_phi(diamond_out, db_info[db], outfile)
-                            out_file_list['file'].append(outfile)
                         if db in ['cazy'] and db in db_info:
                             outfile = os.path.join(outdir, str(db)+'_anno_table.csv')
                             anno_count[db] = process_cazy(diamond_out, db_info[db], outfile)
-                            out_file_list['file'].append(outfile)
                         if db == 'cog' and db in db_info:
                             outfile = os.path.join(outdir, 'cog_anno_table.csv')
                             anno_count[db] = process_cog(diamond_out, db_info[db], outfile)
-                            out_file_list['file'].append(outfile)
                         if outfile:
-                            out_file_list['json'].update({f'{db}_gene_anno_csv': os.path.split(outfile)[1]})
+                            out_file_list['file'].append(outfile)
+                            out_file_list['json']['gene_anno_csv'].update({f'{db}_gene_anno_csv': os.path.split(outfile)[1]})
             else:
                 logging.info(f'No database path for {db}')
 
@@ -230,6 +227,8 @@ def FunctionAnno(fa, outdir, db_path, db_info, threads, db_list, faafile=None):
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='genome fasta file')
@@ -252,7 +251,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     taskID = args.taskID
-
+    post_pid(taskID)
     if os.path.isfile(args.db_path):
         with open(args.db_path, 'rt') as h:
             db_path = json.load(h)

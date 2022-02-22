@@ -15,6 +15,7 @@ import run_docker
 from unzip_file import file_type
 from read_qc_zip import get_qc_data
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -249,6 +250,8 @@ def Fastq_QC(fq1, fq2, outdir, threads):
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
@@ -270,6 +273,7 @@ if __name__ == '__main__':
     mkdir(tmp_dir)
     taskID = args.taskID
     fq_cor_1, fq_cor_2 = ('', '')
+    post_pid(taskID)
     try:
         ## Fastqc
         s = f'Fastqc\tR\t'

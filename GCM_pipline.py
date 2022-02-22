@@ -16,6 +16,7 @@ from Fasta_FactorAnno import FactorsAnno
 from Fasta_Typing import Fasta_Typing
 from Fasta_Annotation import FunctionAnno
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -31,6 +32,8 @@ def exit_now_fa(input):
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
@@ -85,6 +88,9 @@ if __name__ == '__main__':
         mkdir(tmp_dir)
     except Exception as e:
         logging.error(e)
+        sys.exit(e)
+
+    post_pid(taskID)
 
     if args.type == 'fastqPE':
         fq_cor_1, fq_cor_2 = ('', '')
@@ -178,11 +184,15 @@ if __name__ == '__main__':
         except Exception as e:
             logging.error(f'FactorAnno status {e}')
 
+        try:
+            s = f'Typing\tR\t'
+            write_status(status_report, s)
+        except Excception as e:
+            logging.error(f'Typing status {e}')
+
         if species:
             try:
                 ## Typing
-                s = f'Typing\tR\t'
-                write_status(status_report, s)
                 out_file_list_tmp = Fasta_Typing(scaffolds_fasta_file, tmp_dir, args.threads, args.cgmlst_db_path, species)
                 copy_file(out_file_list_tmp['file'], outdir)
                 with open(os.path.join(outdir, 'Typing.json'), 'w') as H:
@@ -191,11 +201,14 @@ if __name__ == '__main__':
             except Exception as e:
                 logging.error(f'Typing {e}')
                 s = f'Typing\tE\t'
-            try:
-                write_status(status_report, s)
-                post_url(taskID, 'Typing')
-            except Exception as e:
-                logging.error(f'Typing status {e}')
+        else:
+            s = f'Typing\tE\t'
+        try:
+            write_status(status_report, s)
+            post_url(taskID, 'Typing')
+        except Exception as e:
+            logging.error(f'Typing status {e}')
+
         try:
             ## GeneAnno
             s = f'GeneAnno\tR\t'

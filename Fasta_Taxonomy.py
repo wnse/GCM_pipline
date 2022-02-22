@@ -11,6 +11,7 @@ from Bio import SeqIO
 from mkdir import mkdir
 import run_docker
 from post_status import post_url
+from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
@@ -232,7 +233,9 @@ def Fasta_Taxonomy(fa, outdir, db_16s, info_16s, db_genome, info_genome, db_geno
 
 if __name__ == '__main__':
     cpu_num = multiprocessing.cpu_count()
-
+    if cpu_num > 4:
+        cpu_num = cpu_num - 2
+    bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='genome fasta file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
@@ -260,7 +263,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     status_report = os.path.join(outdir, 'status_report.txt')
     taskID = args.taskID
-
+    post_pid(taskID)
     if os.path.isfile(args.db_16S + '.nsq') and os.path.isfile(args.info_16S) and os.path.isfile(args.db_genome) and os.path.isfile(args.info_genome):
         tmp_dir = os.path.join(outdir, 'tmp_dir')
         mkdir(tmp_dir)
