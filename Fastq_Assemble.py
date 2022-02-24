@@ -19,9 +19,9 @@ from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
-def run_spades(fq1, fq2, outdir, threads):
+def run_spades(pe_fq_list, se_fq, outdir, threads):
     logging.info('spades')
-    spades_out, scaffolds_fasta = run_docker.spades_docker(fq1, fq2, outdir, threads=threads)
+    spades_out, scaffolds_fasta = run_docker.spades_docker(pe_fq_list, se_fq, outdir, threads=threads)
     logging.info(spades_out)
     logging.info(scaffolds_fasta)
     return scaffolds_fasta
@@ -47,9 +47,9 @@ def filter_fa_by_len(fa, outfile, cutoff=500, name='scaffolds'):
         logging.error(f'filter_fa_by_len {e}')
     return seq_count, max_len
 
-def run_bwa_align(fq1, fq2, scaffolds_fasta, outdir, threads=1):
+def run_bwa_align(fq_list, scaffolds_fasta, outdir, threads=1):
     logging.info('bwa align')
-    cmd_out = run_docker.bwa_align_docker(fq1, fq2, scaffolds_fasta, outdir, threads)
+    cmd_out = run_docker.bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads)
     if cmd_out[0]:
         logging.error(cmd_out)
         return cmd_out, 0, 0
@@ -112,13 +112,18 @@ def run_checkm(fa, outdir, threads):
     except Exception as e:
         logging.error(f'run_checkm {e}')
 
-def Fastq_Assemble(fq1, fq2, outdir, threads, sampleTag='test', fastqc=None):
+def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', fastqc=None, pacbio_fq=None):
     mkdir(outdir)
     out_file_list = {}
     out_file_list['json'] = {}
     out_file_list['file'] = []
+    scaffolds_fasta = ''
     # if fastqc:
-    fq_cor_1, fq_cor_2 = fq1, fq2
+    fq_cor_1, fq_cor_2 = None, None
+    if len(fq_list) == 2:
+        fq_cor_1, fq_cor_2 = fq_list
+    else:
+        fq_cor_1 = fq_list[0]
     # else:
     #     # [fq_cor_1, fq_cor_2], qc_out_file = Fastq_QC.Fastq_QC(fq1, fq2, outdir, threads=threads)
     #     # out_file_list['json'].update(qc_out_file)
@@ -131,50 +136,55 @@ def Fastq_Assemble(fq1, fq2, outdir, threads, sampleTag='test', fastqc=None):
     # fq_cor_1, fq_cor_2 = (fq1, fq2)
     # fq_cor_1 = os.path.join(outdir, 'musket_dir', 'trime_corrected.1.fastq') #test
     # fq_cor_2 = os.path.join(outdir, 'musket_dir', 'trime_corrected.2.fastq') #test
-    if fq_cor_1 and fq_cor_2:
-        scaffolds_fasta = run_spades(fq_cor_1, fq_cor_2, outdir, threads=threads)
+    if fq_cor_1 and fq_cor_2 and pacbio_fq:
+        scaffolds_fasta = run_spades(fq_list, pacbio_fq, outdir, threads=threads)
+    elif fq_cor_1 and fq_cor_2:
+        scaffolds_fasta = run_spades(fq_list, None, outdir, threads=threads)
+    elif fq_cor_1:
+        scaffolds_fasta = run_spades(None, fq_cor_1, outdir, threads=threads)
         # scaffolds_fasta = os.path.join(outdir, 'spades_21_33_55', 'scaffolds.fasta') #test
-        if scaffolds_fasta:
-            scaffolds_fasta_file = os.path.join(outdir, sampleTag+'.scaffolds.fasta')
-            scaffolds_count, scaffolds_max_len = filter_fa_by_len(scaffolds_fasta, scaffolds_fasta_file, name=sampleTag)
-            logging.info(f'scaffolds {scaffolds_count} maxLen {scaffolds_max_len}')
-            if scaffolds_count and scaffolds_max_len:
-                try:
-                    checkm_out, checkm_out_file = run_checkm(scaffolds_fasta_file, outdir, threads)
-                    if checkm_out_file:
-                        df_tmp = pd.read_csv(checkm_out_file).astype(str)
-                        df_tmp.columns = df_tmp.columns.astype(str).str.lower().str.replace(' ','_').str.replace('.','_', regex=False)
-                        df_tmp.columns = df_tmp.columns.str.replace('+','', regex=False).str.replace('#','', regex=False)
-                        df_tmp.columns = 'c_' + df_tmp.columns
-                        tmp_dict = {'genome_checkm_evaluate':df_tmp.loc[0].to_dict()}
-                        out_file_list['json'].update(tmp_dict)
-                        out_file_list['file'].append(checkm_out_file)
-                except Exception as e:
-                    logging.error(f'Fastq_Assemble checkM {e}')
-                try:
-                    bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq1, fq2, scaffolds_fasta_file, outdir, threads)
-                    if bwa_align_out == 0:
-                        out_file_list['file'].append(gc_cover_png)
-                        out_file_list['file'].append(genome_info_file)
-                        df_tmp = pd.read_csv(genome_info_file, header=None, index_col=0)[1].astype(str).to_dict()
-                        out_file_list['json'].update({'genome_info_summary':df_tmp})
-                        out_file_list['json'].update({'gc_cover_png':os.path.split(gc_cover_png)[1]})
+    else:
+        logging.info(f'Assebly for {fq_list} & {pacbio_fq}')
+    if scaffolds_fasta:
+        scaffolds_fasta_file = os.path.join(outdir, sampleTag+'.scaffolds.fasta')
+        scaffolds_count, scaffolds_max_len = filter_fa_by_len(scaffolds_fasta, scaffolds_fasta_file, name=sampleTag)
+        logging.info(f'scaffolds {scaffolds_count} maxLen {scaffolds_max_len}')
+        if scaffolds_count and scaffolds_max_len:
+            try:
+                checkm_out, checkm_out_file = run_checkm(scaffolds_fasta_file, outdir, threads)
+                if checkm_out_file:
+                    df_tmp = pd.read_csv(checkm_out_file).astype(str)
+                    df_tmp.columns = df_tmp.columns.astype(str).str.lower().str.replace(' ','_').str.replace('.','_', regex=False)
+                    df_tmp.columns = df_tmp.columns.str.replace('+','', regex=False).str.replace('#','', regex=False)
+                    df_tmp.columns = 'c_' + df_tmp.columns
+                    tmp_dict = {'genome_checkm_evaluate':df_tmp.loc[0].to_dict()}
+                    out_file_list['json'].update(tmp_dict)
+                    out_file_list['file'].append(checkm_out_file)
+            except Exception as e:
+                logging.error(f'Fastq_Assemble checkM {e}')
+            try:
+                bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq_list, scaffolds_fasta_file, outdir, threads)
+                if bwa_align_out == 0:
+                    out_file_list['file'].append(gc_cover_png)
+                    out_file_list['file'].append(genome_info_file)
+                    df_tmp = pd.read_csv(genome_info_file, header=None, index_col=0)[1].astype(str).to_dict()
+                    out_file_list['json'].update({'genome_info_summary':df_tmp})
+                    out_file_list['json'].update({'gc_cover_png':os.path.split(gc_cover_png)[1]})
+                    if len(fq_list) == 2:
                         try:
                             picard_CIAM_out, inser_size, insert_size_pdf = run_picard_CIAM(out_bam_file, outdir)
                             out_file_list['file'].append(insert_size_pdf)
                             out_file_list['json'].update({'insert_len_size_pdf': os.path.split(insert_size_pdf)[1]})
                         except Exception as e:
                             logging.error(f'Fastq_Assemble picard {e}')
-                except Exception as e:
-                    logging.error(f'Fastq_Assemble bwa {e}')
-                out_file_list['file'].append(scaffolds_fasta_file)
-                out_file_list['json'].update({'scaffolds_fasta_file':os.path.split(scaffolds_fasta_file)[1]})
-            else:
-                logging.info('0 scaffolds')
+            except Exception as e:
+                logging.error(f'Fastq_Assemble bwa {e}')
+            out_file_list['file'].append(scaffolds_fasta_file)
+            out_file_list['json'].update({'scaffolds_fasta_file':os.path.split(scaffolds_fasta_file)[1]})
         else:
-            logging.info('assemble error')
+            logging.info('0 scaffolds')
     else:
-        logging.info(f'Fastq_Assemble {fq1} or {fq2} error')
+        logging.info('assemble error')
     return out_file_list
 
 def exit_now(input):
@@ -197,32 +207,33 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     os.environ['NUMEXPR_MAX_THREADS'] = str(args.threads)
+    outdir = args.outdir
+    mkdir(outdir)
+    logfile = os.path.join(outdir, 'log')
+    logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+    tmp_dir = os.path.join(outdir, 'tmp_dir')
+    mkdir(tmp_dir)
+    status_report = os.path.join(outdir, 'status_report.txt')
     taskID = args.taskID
     post_pid(taskID)
     try:
-        exit_now(args.input)
-        outdir = args.outdir
-        mkdir(outdir)
-        logfile = os.path.join(outdir, 'log')
-        logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-        tmp_dir = os.path.join(outdir, 'tmp_dir')
-        mkdir(tmp_dir)
-        status_report = os.path.join(outdir, 'status_report.txt')
-
-        fq1 = args.input[0]
-        fq2 = args.input[1]
+        # fq1 = args.input[0]
+        # fq2 = args.input[1]
+        fq_list = args.input
         if not args.Nqc:
             try:
                 ## Fastqc
                 s = f'Fastqc\tR\t'
                 write_status(status_report, s)
-                [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC.Fastq_QC(args.input[0], args.input[1], tmp_dir,threads=args.threads)
+                fq_cor_list, out_file_list_tmp = Fastq_QC.Fastq_QC(fq_list, tmp_dir,threads=args.threads)
                 copy_file(out_file_list_tmp['file'], outdir)
                 with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                     json.dump(out_file_list_tmp['json'], H, indent=2)
                 s = f'Fastqc\tD\t'
-                fq1 = fq_cor_1
-                fq2 = fq_cor_2
+                # fq1 = fq_cor_1
+                # fq2 = fq_cor_2
+                fq_list = fq_cor_list
             except Exception as e:
                 logging.error(f'Fastqc {e}')
                 s = f'Fastqc\tE\t'
@@ -236,7 +247,7 @@ if __name__ == '__main__':
         try:
             s = f'Assembly\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(fq1, fq2, tmp_dir, args.threads, sampleTag=args.name)
+            out_file_list_tmp = Fastq_Assemble(fq_list, tmp_dir, args.threads, sampleTag=args.name)
             scaffolds_fasta_file = out_file_list_tmp['file'][-1]
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:

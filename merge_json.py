@@ -10,20 +10,59 @@ from mkdir import mkdir
 from post_status import post_url
 
 
-def merge_json(json_list, name_list):
+def get_value(d, key_list, name):
+    if type(d) is dict:
+        if key_list[0] in d:
+            k_tmp = key_list[1:]
+            #print(k_tmp)
+            if k_tmp:
+                return get_value(d[key_list[0]], k_tmp, name)
+            else:
+                return {name : d[key_list[0]]}
+        else:
+            logging.info(f'{key_list[0]} not in {d.keys()}')
+    elif type(d) is list:
+        tmp_out = []
+        for i, d_tmp in enumerate(d):
+            tmp_out.append(get_value(d_tmp, key_list, name+f'_{i+1}'))
+        return tmp_out
+
+def get_all_value(json_dict, config_file, step='Fastqc'):
+    with open(config_file, 'rt') as h:
+        con = json.load(h)
+    df = []
+    for i in con[step].keys():
+        tmp_list = con[step][i]['key']
+        df.append(get_value(json_dict, tmp_list, i))
+    df_dict = {}
+    for i in df:
+        if type(i) is dict:
+            df_dict.update(i)
+        elif type(i) is list:
+            for j in i:
+                df_dict.update(j)
+    return df_dict
+
+def merge_json(json_list, name_list, step, config_file):
     total_json = {}
     total_json['batch'] = {}
     total_json['samples'] = []
+    total_df = pd.DataFrame()
     for i, j in enumerate(json_list):
         with open(j, 'rt') as h:
             try:
                 tmp = json.load(h)
+                if config_file:
+                    tmp_dict = get_all_value(tmp, config_file, step)
+                    tmp_df = pd.DataFrame.from_dict(tmp_dict, orient='index')
+                    tmp_df.columns = [name_list[i]]
+                    total_df = pd.concat([total_df, tmp_df], axis=1)
             except Exception as e:
                 logging.error(f'{j} {e}')
             tmp['sampleID'] = name_list[i]
             tmp['samplePath'] = os.path.split(j)[0]
             total_json['samples'].append(tmp)
-    return total_json
+    return total_json, total_df
 
 def run_r_tree(cg_mlst_file, outdir):
     logging.info('r cgmlst tree')
@@ -54,12 +93,12 @@ def make_cg_tree(cg_file_list, name_list, outdir):
     return tree_file, cg_total_file
 
 
-def get_rgi_csv(f, name='test'):
+def get_rgi_csv(f, name='test', cutoff=70):
     df = pd.read_csv(f)
     if 'Best_Identities' in df.columns:
-        df = df[df['Best_Identities']>90]
+        df = df[df['Best_Identities']>cutoff]
     elif 'Identities' in df.columns:
-        df = df[df['Identities']>90]
+        df = df[df['Identities']>cutoff]
     df['sampleID'] = name
     return df
 
@@ -91,10 +130,12 @@ def get_file_list(dir_list, name_list, file_name):
     return file_list, name_list_tmp
 
 
-def merge(dir_list, name_list, outdir='./', type='Fastqc'):
+def merge(dir_list, name_list, outdir='./', type='Fastqc', cofig_file=None):
     if type in ['Fastqc', 'Assembly', 'Taxonomy', 'FactorAnno', 'Typing', 'GeneAnno']:
         json_list, name_list_tmp = get_file_list(dir_list, name_list, type+'.json')
-        total_json_dict = merge_json(json_list, name_list_tmp)
+        total_json_dict, total_df = merge_json(json_list, name_list_tmp, type, cofig_file)
+        if not total_df.empty:
+            total_df.to_csv(os.path.join(outdir, type+'.csv'))
 
         if type in['FactorAnno']:
             filename = 'FactorAnno_VFs.csv'
@@ -140,10 +181,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, nargs="+", help='dir list')
     parser.add_argument('-n', '--name', required=True, nargs="+", help='sample name list')
-    parser.add_argument('-s', '--step', required=True, help='types for merge')
+    parser.add_argument('-s', '--step', required=True, nargs="+", help='types for merge')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
+    parser.add_argument('-con', '--config', default=os.path.join(bin_dir, 'merge_json_config.json'), help='task ID for report status')
     parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
@@ -157,7 +199,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename=logfile, format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     dir_list, name_list = args.input, args.name
-    merge(dir_list, name_list, outdir=args.outdir, type=args.step)
+    for step in args.step:
+        try:
+            merge(dir_list, name_list, outdir=args.outdir, type=step, cofig_file=args.config)
+        except Exception as e:
+            logging.error(f'merge {e}')
     taskID = args.taskID
     try:
         post_url(taskID, '2', 'http://localhost/task/getMergeStatus/')

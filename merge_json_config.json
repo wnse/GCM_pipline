@@ -1,0 +1,203 @@
+{
+	"Fastqc":{
+		"genome_haploid_length":{
+			"key":["genomescope_predict", "genome_haploid_length"],
+			"value":"value"
+		},
+		"quality check":{
+			"key":["fastqc_info","summary","per_base_sequence_quality"],
+			"value":"value"
+		},
+		"raw total_reads":{
+			"key":["fastqc_info","raw_sta","total_reads"],
+			"value":"value"
+		},
+		"raw total_bases":{
+			"key":["fastqc_info","raw_sta","total_bases"],
+			"value":"value"
+		},
+		"raw Q20":{
+			"key":["fastqc_info","raw_sta","Q20"],
+			"value":"value"
+		},
+		"raw Q30":{
+			"key":["fastqc_info","raw_sta","Q30"],
+			"value":"value"
+		},
+		"raw GC":{
+			"key":["fastqc_info","raw_sta","GC"],
+			"value":"value"
+		},
+		"raw average_length":{
+			"key":["fastqc_info","raw_sta","average_length"],
+			"value":"value"
+		},
+		"clean total_reads":{
+			"key":["fastqc_info","clean_sta","total_reads"],
+			"value":"value"
+		},
+		"clean total_bases":{
+			"key":["fastqc_info","clean_sta","total_bases"],
+			"value":"value"
+		},
+		"clean Q20":{
+			"key":["fastqc_info","clean_sta","Q20"],
+			"value":"value"
+		},
+		"clean Q30":{
+			"key":["fastqc_info","clean_sta","Q30"],
+			"value":"value"
+		},
+		"clean GC":{
+			"key":["fastqc_info","clean_sta","GC"],
+			"value":"value"
+		},
+		"clean average_length":{
+			"key":["fastqc_info","clean_sta","average_length"],
+			"value":"value"
+		}
+
+	},
+	"Assembly":{
+		"genome_completeness":{
+			"key":["genome_checkm_evaluate", "c_completeness"],
+			"value":"value"
+		},
+		"genome_contamination":{
+			"key":["genome_checkm_evaluate", "c_contamination"],
+			"value":"value"
+		},
+		"genome_strain_heterogeneity":{
+			"key":["genome_checkm_evaluate", "c_strain_heterogeneity"],
+			"value":"value"
+		},
+		"genome_scaffolds_number":{
+			"key":["genome_info_summary", "scaffolds_num"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_mean":{
+			"key":["genome_info_summary", "len_avg"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_std":{
+			"key":["genome_info_summary", "len_std"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_min":{
+			"key":["genome_info_summary", "len_min"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_N25":{
+			"key":["genome_info_summary", "N25"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_N50":{
+			"key":["genome_info_summary", "N50"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_N75":{
+			"key":["genome_info_summary", "N75"],
+			"value":"value"
+		},
+		"genome_scaffolds_length_max":{
+			"key":["genome_info_summary", "len_max"],
+			"value":"value"
+		},
+		"genome_scaffolds_size":{
+			"key":["genome_info_summary", "genome_size"],
+			"value":"value"
+		},
+		"genome_scaffolds_GC":{
+			"key":["genome_info_summary", "GC"],
+			"value":"value"
+		},
+		"genome_scaffolds_N's":{
+			"key":["genome_info_summary", "n_number"],
+			"value":"value"
+		},
+		"genome_scaffolds_reads_cover_depth":{
+			"key":["genome_info_summary", "cover_depth"],
+			"value":"value"
+		}
+	},
+	"Taxonomy":{
+		"Taxonomy Genus":{
+			"key":["tax_summary", "genus"],
+			"value":"value"
+		},
+		"Taxonomy Species":{
+			"key":["tax_summary", "species"],
+			"value":"value"
+		},
+		"Taxonomy related_strain":{
+			"key":["tax_summary", "related_strain"],
+			"value":"value"
+		},
+		"ANI":{
+			"key":["tax_summary", "ANI"],
+			"value":"value"
+		}
+	},
+	"Typing":{
+		"CGs":{
+			"key":["cgmlst_summary", "cg_num"],
+			"value":"value"
+		},		
+		"CGs missed":{
+			"key":["cgmlst_summary", "cg_miss_num"],
+			"value":"value"
+		},
+		"CGs missed ratio":{
+			"key":["cgmlst_summary", "cg_miss_ratio"],
+			"value":"value"
+		},
+		"serotype o_antigen_prediction":{
+			"key":["serotype_summary", "o_antigen_prediction"],
+			"value":"value"
+		},		
+		"serotype h1_antigen_prediction":{
+			"key":["serotype_summary", "h1_antigen_prediction"],
+			"value":"value"
+		},	
+		"serotype h2_antigen_prediction":{
+			"key":["serotype_summary", "h2_antigen_prediction"],
+			"value":"value"
+		},	
+		"serotype predicted_antigenic_profile":{
+			"key":["serotype_summary", "predicted_antigenic_profile"],
+			"value":"value"
+		},	
+		"serotype predicted_subspecies":{
+			"key":["serotype_summary", "predicted_subspecies"],
+			"value":"value"
+		},
+		"serotype predicted_serotype":{
+			"key":["serotype_summary", "predicted_serotype"],
+			"value":"value"
+		},	
+		"MLST ST":{
+			"key":["mlst_summary", "ST"],
+			"value":"value"
+		},	
+		"MLST ST info":{
+			"key":["mlst_summary", "st_info"],
+			"value":"value"
+		}
+	},
+	"GeneAnno": {
+		"gene_anno_db":{
+			"key":["gene_anno_summary", "db"],
+			"value":"value"
+		},
+		"gene_anno_gene":{
+			"key":["gene_anno_summary", "gene_count"],
+			"value":"value"
+		},
+		"gene_anno_ratio":{
+			"key":["gene_anno_summary", "ratio"],
+			"value":"value"
+		}
+	}
+
+}
+

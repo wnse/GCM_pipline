@@ -61,10 +61,10 @@ if __name__ == '__main__':
     parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
 
-    if args.type == 'fastqPE':
-        exit_now_fqPE(args.input)
-    else:
-        exit_now_fa(args.input)
+    # if args.type == 'fastqPE':
+    #     exit_now_fqPE(args.input)
+    # else:
+    #     exit_now_fa(args.input)
 
     if os.path.isfile(args.con_db_path):
         with open(args.con_db_path, 'rt') as h:
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             ## Fastqc
             s = f'Fastqc\tR\t'
             write_status(status_report, s)
-            [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC(args.input[0], args.input[1], tmp_dir, threads=args.threads)
+            fq_cor_list, out_file_list_tmp = Fastq_QC(args.input, tmp_dir, threads=args.threads)
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                 json.dump(out_file_list_tmp['json'], H, indent=2)
@@ -114,15 +114,14 @@ if __name__ == '__main__':
 
         ## Assembly
         scaffolds_fasta_file = ''
-        if fq_cor_1 and fq_cor_2:
-            logging.info(f'{fq_cor_1}')
-            logging.info(f'{fq_cor_2}')
+        if fq_cor_list:
+            logging.info(f'{fq_cor_list}')
         else:
-            fq_cor_1, fq_cor_2 = args.input[0], args.input[1]
+            fq_cor_list = args.input
         try:
             s = f'Assembly\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(fq_cor_1, fq_cor_2, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
+            out_file_list_tmp = Fastq_Assemble(fq_cor_list, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
             scaffolds_fasta_file = out_file_list_tmp['file'][-1]
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:

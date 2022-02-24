@@ -48,23 +48,42 @@ def trim_docker_pe(fq1, fq2, outdir, threads):
         return cmd_out, 0, 0
     return cmd_out, fq1_trime, fq2_trime
 
+def trim_docker_se(fq, outdir, threads):
+    img_name = 'registry.servicemgr.bjwsws:5000/trimmomatic_sickle:latest'
+    all_data_path = [fq, outdir]
+    trim_dir = os.path.join(outdir, 'trimmomatic_dir')
+    mkdir(trim_dir)
+    fq_trime = os.path.join(trim_dir, "trim.fastq")
+    logfile = os.path.join(outdir, "trimmomatic.log")
+    cmd = (f'java -jar /software/applications/Trimmomatic/0.36/trimmomatic-0.36.jar  SE -threads {threads} '
+           f'{fq} {fq_trime} '
+           f'ILLUMINACLIP:/software/applications/Trimmomatic/0.36/adapters/TruSeq3-SE.fa:2:30:10 '
+           f'SLIDINGWINDOW:5:20 MINLEN:20 '
+           f'>{logfile} 2>&1')
+    cmd_out = run_docker(img_name, all_data_path, cmd)
+    if cmd_out:
+        return cmd_out, 0, 0
+    return cmd_out, fq_trime
 
-def musket_docker(fq1, fq2, outdir, threads):
+def musket_docker(fq_list, outdir, threads):
     img_name = 'registry.servicemgr.bjwsws:5000/srctools:latest'
-    all_data_path = [fq1, fq2, outdir]
+    all_data_path = fq_list + [outdir]
     musket_dir = os.path.join(outdir, 'musket_dir')
     mkdir(musket_dir)
     logfile = os.path.join(outdir, "musket.log")
     cmd = (f'/BioBin/musket-1.1/bin/musket -inorder -p {threads} -omulti {os.path.join(musket_dir, "trime_corrected")} '
-           f'{fq1} {fq2} >{logfile} 2>&1')
+           f'{" ".join(fq_list)} >{logfile} 2>&1')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:
         return cmd_out, 0, 0
-    fq_cor_1 = os.path.join(musket_dir, "trime_corrected.1.fastq")
-    fq_cor_2 = os.path.join(musket_dir, "trime_corrected.2.fastq")
-    os.system(f'sudo mv {os.path.join(musket_dir, "trime_corrected.0")} {fq_cor_1}')
-    os.system(f'sudo mv {os.path.join(musket_dir, "trime_corrected.1")} {fq_cor_2}')
-    return cmd_out, fq_cor_1, fq_cor_2
+    fq_cor_list = []
+    for i, f in enumerate(fq_list):
+        fq_cor = os.path.join(musket_dir, f"trime_corrected.{i+1}.fastq")
+        # fq_cor_2 = os.path.join(musket_dir, "trime_corrected.2.fastq")
+        os.system(f'sudo mv {os.path.join(musket_dir, f"trime_corrected.{i}")} {fq_cor}')
+        # os.system(f'sudo mv {os.path.join(musket_dir, "trime_corrected.1")} {fq_cor_2}')
+        fq_cor_list.append(fq_cor)
+    return cmd_out, fq_cor_list
 
 
 def unzip_fq_file(file, outdir):
@@ -122,26 +141,41 @@ def genomescope_docker(histo_file, outdir, read_length):
     return cmd, outfile, outpng
 
 
-def spades_docker(fq1, fq2, outdir, threads=1, k_mer=[21,33,55]):
+def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[21,33,55]):
     k_mer_str = 'spades_' + '_'.join([str(i) for i in k_mer])
     k_mer_dir = os.path.join(outdir, k_mer_str)
     mkdir(k_mer_dir)
     log_file = os.path.join(outdir, k_mer_str+".log")
     img_name = 'registry.servicemgr.bjwsws:5000/assembletools:latest'
-    all_data_path = [fq1, fq2, outdir]
-    cmd = (f'python /BioBin/SPAdes-3.13.0-Linux/bin/spades.py --careful --sc --disable-gzip-output '
-           f'-1 {fq1} -2 {fq2} -k {",".join([str(i) for i in k_mer])} -o {k_mer_dir} -t {threads} '
-           f'>{log_file} 2>&1')
-    cmd_out = run_docker(img_name, all_data_path, cmd)
-    if cmd_out:
+    all_data_path = [outdir]
+    pe_input = ''
+    se_input = ''
+    if PE_fq_list and len(PE_fq_list) == 2:
+        pe_input = f'--pe1-1 {PE_fq_list[0]} --pe1-2 {PE_fq_list[1]}'
+        all_data_path = PE_fq_list + all_data_path
+    if SE_fq:
+        se_input = f'-s {SE_fq}'
+        all_data_path = all_data_path + [SE_fq]
+    if pe_input or se_input:
+        cmd = (f'python /BioBin/SPAdes-3.13.0-Linux/bin/spades.py --careful --sc --disable-gzip-output '
+               f'{pe_input} {se_input} '
+               f'-k {",".join([str(i) for i in k_mer])} -o {k_mer_dir} -t {threads} '
+               f'>{log_file} 2>&1')
+    #
+    # cmd = (f'python /BioBin/SPAdes-3.13.0-Linux/bin/spades.py --careful --sc --disable-gzip-output '
+    #        f'-1 {fq1} -2 {fq2} -k {",".join([str(i) for i in k_mer])} -o {k_mer_dir} -t {threads} '
+    #        f'>{log_file} 2>&1')
+        cmd_out = run_docker(img_name, all_data_path, cmd)
+        if cmd_out:
+            return cmd_out, 0
+        scaffolds_fasta = os.path.join(k_mer_dir, "scaffolds.fasta")
+        if os.path.isfile(scaffolds_fasta):
+            return cmd_out, scaffolds_fasta
         return cmd_out, 0
-    scaffolds_fasta = os.path.join(k_mer_dir, "scaffolds.fasta")
-    if os.path.isfile(scaffolds_fasta):
-        return cmd_out, scaffolds_fasta
-    return cmd_out, 0
+    return 0, 0
 
-def bwa_align_docker(fq1, fq2, scaffolds_fasta, outdir, threads=1):
-    all_data_path = [fq1, fq2, scaffolds_fasta, outdir]
+def bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads=1):
+    all_data_path = fq_list + [scaffolds_fasta, outdir]
     bwa_align_dir = os.path.join(outdir, 'bwa_align_dir')
     mkdir(bwa_align_dir)
     out_bam_file = os.path.join(bwa_align_dir, 'align.sorted.bam')
@@ -156,7 +190,7 @@ def bwa_align_docker(fq1, fq2, scaffolds_fasta, outdir, threads=1):
         return "bwa index error"
 
     sam_file = out_bam_file + ".sam"
-    cmd = (f'/BioBin/bwa/bwa mem {scaffolds_fasta} {fq1} {fq2} -t {threads} > {sam_file} 2>>{log_file}')
+    cmd = (f'/BioBin/bwa/bwa mem {scaffolds_fasta} {" ".join(fq_list)} -t {threads} > {sam_file} 2>>{log_file}')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:
         return "bwa mem error"

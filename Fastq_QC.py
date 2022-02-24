@@ -2,6 +2,7 @@ import json
 import multiprocessing
 from multiprocessing import Pool
 import os
+import sys
 import shutil
 import argparse
 import gzip
@@ -107,7 +108,7 @@ def run_cal_q20(fq_path_list, name_list=[], threads=1):
         if name_list:
             name = name_list[i]
         else:
-            name = get_file_name(file)
+            name = get_file_name([file])[0]
         if name:
             total_reads_tmp, total_base_tmp, q20_tmp, q30_tmp, gc_tmp = cal_q20(file, threads=threads)
             avg_tmp = total_base_tmp / total_reads_tmp
@@ -122,17 +123,24 @@ def run_fastqc(fq_path_list, outdir, threads):
     logging.info(f'{qc_out}')
     return qc_out, qc_dir
 
-def run_trim_pe(fq1, fq2, outdir, threads):
+def run_trim_pe(fq_list, outdir, threads):
     logging.info('trimmomatic')
-    trime_cmd_out, fq_trime_1, fq_trime_2 = run_docker.trim_docker_pe(fq1, fq2, outdir, threads)
+    trim_list = []
+    if len(fq_list) == 2:
+        fq1, fq2 = fq_list
+        trime_cmd_out, fq_trime_1, fq_trime_2 = run_docker.trim_docker_pe(fq1, fq2, outdir, threads)
+        trim_list = [fq_trime_1, fq_trime_2]
+    else:
+        trime_cmd_out, fq_trime = run_docker.trim_docker_se(fq_list[0], outdir, threads)
+        trim_list = [fq_trime]
     logging.info(f'{trime_cmd_out}')
-    return trime_cmd_out, fq_trime_1, fq_trime_2
+    return trime_cmd_out, trim_list
 
-def run_musket(fq1, fq2, outdir, threads):
+def run_musket(fq_list, outdir, threads):
     logging.info('musket')
-    musket_cmd_out, fq_cor_1, fq_cor_2 = run_docker.musket_docker(fq1, fq2, outdir, threads)
+    musket_cmd_out, fq_cor_list = run_docker.musket_docker(fq_list, outdir, threads)
     logging.info(f'{musket_cmd_out}')
-    return musket_cmd_out, fq_cor_1, fq_cor_2
+    return musket_cmd_out, fq_cor_list
 
 def run_jellyfish(fq, outdir, threads):
     logging.info('jefflyfish count')
@@ -162,22 +170,25 @@ def run_genomescope(histo_file, outdir, read_length):
             logging.error(f'run_genomescope {e}')
     return genomescope_cmd_out, 0, 0
 
-def get_file_name(file):
-    f = os.path.split(file)[1]
-    if re.match('(\S+\.fq\S+).gz', f) or re.match('(\S+\.fastq\S+).gz', f):
-        return re.match('(\S+).gz', f).group(1)
-    elif re.match('(\S+)\.fq.gz', f):
-        return re.match('(\S+)\.fq.gz', f).group(1)
-    elif re.match('(\S+)\.fastq.gz', f):
-        return re.match('(\S+)\.fastq.gz', f).group(1)
-    elif re.match('(\S+)\.fq', f):
-        return re.match('(\S+)\.fq', f).group(1)
-    elif re.match('(\S+)\.fastq', f):
-        return re.match('(\S+)\.fastq', f).group(1)
-    else:
-        return None
+def get_file_name(file_list):
+    name_list = []
+    for file in file_list:
+        f = os.path.split(file)[1]
+        if re.match('(\S+\.fq\S+).gz', f) or re.match('(\S+\.fastq\S+).gz', f):
+            name_list.append(re.match('(\S+).gz', f).group(1))
+        elif re.match('(\S+)\.fq.gz', f):
+            name_list.append(re.match('(\S+)\.fq.gz', f).group(1))
+        elif re.match('(\S+)\.fastq.gz', f):
+            name_list.append(re.match('(\S+)\.fastq.gz', f).group(1))
+        elif re.match('(\S+)\.fq', f):
+            name_list.append(re.match('(\S+)\.fq', f).group(1))
+        elif re.match('(\S+)\.fastq', f):
+            name_list.append(re.match('(\S+)\.fastq', f).group(1))
+        else:
+            name_list.append(None)
+    return name_list
 
-def Fastq_QC(fq1, fq2, outdir, threads):
+def Fastq_QC(fq_list, outdir, threads):
     mkdir(outdir)
     out_file_list = {}
     out_file_list['json'] = {}
@@ -185,8 +196,9 @@ def Fastq_QC(fq1, fq2, outdir, threads):
     fastqc_sta_clean = {}
     fastqc_sta_raw = {}
     fastqc_summary = {}
-    fq_cor_1, fq_cor_2 = ('', '')
-    qc_out, qc_dir = run_fastqc([fq1, fq2], outdir, threads)
+    fq_cor_list = fq_list
+    # fq_cor_1, fq_cor_2 = ('', '')
+    qc_out, qc_dir = run_fastqc(fq_list, outdir, threads)
     qc_out_dir = os.path.join(outdir, 'fastqc_unzip_dir')
     if qc_out:
         logging.error(f'fastqc error {qc_out}')
@@ -196,30 +208,34 @@ def Fastq_QC(fq1, fq2, outdir, threads):
     except Exception as e:
         logging.error(e)
     try:
-        fastqc_sta_raw = run_cal_q20([fq1, fq2], threads=threads)
+        fastqc_sta_raw = run_cal_q20(fq_list, threads=threads)
+        logging.info(f'{fastqc_sta_raw}')
     except Exception as e:
         logging.error(e)
-
-    trime_out, fq_trime_1, fq_trime_2 = run_trim_pe(fq1, fq2, outdir, threads)
+    trime_out, fq_trime_list = run_trim_pe(fq_list, outdir, threads)
     if trime_out:
         logging.info(f'trime error {trime_out}')
-    if fq_trime_1 and fq_trime_2:
-        musket_out, fq_cor_1, fq_cor_2 = run_musket(fq_trime_1, fq_trime_2, outdir, threads)
+    # if fq_trime_1 and fq_trime_2:
+    if fq_trime_list:
+        musket_out, fq_cor_list = run_musket(fq_trime_list, outdir, threads)
+
         if musket_out:
             logging.info(f'musket error {musket_out}')
-        if fq_cor_1 and fq_cor_2:
+        if fq_cor_list[0]:
+            fq_cor_1 = fq_cor_list[0]
             jellyfish_out, histo_file = run_jellyfish(fq_cor_1, outdir, threads)
             read_length = cal_avg_len(fq_cor_1)
-            fastqc_sta_clean = run_cal_q20([fq_cor_1, fq_cor_2], name_list=[get_file_name(fq1), get_file_name(fq2)], threads=threads)
+            fastqc_sta_clean = run_cal_q20(fq_cor_list, name_list=get_file_name(fq_list), threads=threads)
+            logging.info(f'{fastqc_sta_clean}')
             # if jellyfish_out:
             #     logging.info(f'jellyfish error {jellyfish_out}')
         else:
-            jellyfish_out, histo_file = run_jellyfish(fq_trime_1, outdir, threads)
-            read_length = cal_avg_len(fq_trime_1)
-            fastqc_sta_clean = run_cal_q20([fq_trime_1, fq_trime_2], name_list=[get_file_name(fq1), get_file_name(fq2)])
+            jellyfish_out, histo_file = run_jellyfish(fq_trime_list[0], outdir, threads)
+            read_length = cal_avg_len(fq_trime_list[0])
+            fastqc_sta_clean = run_cal_q20(fq_trime_list, name_list=get_file_name(fq_list))
     else:
-        jellyfish_out, histo_file = run_jellyfish(fq1, outdir, threads)
-        read_length = cal_avg_len(fq1)
+        jellyfish_out, histo_file = run_jellyfish(fq_list[0], outdir, threads)
+        read_length = cal_avg_len(fq_list[0])
 
     if histo_file:
         logging.info(f'read length:  {read_length}')
@@ -245,7 +261,7 @@ def Fastq_QC(fq1, fq2, outdir, threads):
         fastq_sta.append(tmp)
 
     out_file_list['json'].update({'fastqc_info': fastq_sta})
-    return [fq_cor_1, fq_cor_2], out_file_list
+    return fq_cor_list, out_file_list
 
 
 if __name__ == '__main__':
@@ -274,11 +290,14 @@ if __name__ == '__main__':
     taskID = args.taskID
     fq_cor_1, fq_cor_2 = ('', '')
     post_pid(taskID)
+
+
     try:
         ## Fastqc
         s = f'Fastqc\tR\t'
         write_status(status_report, s)
-        [fq_cor_1, fq_cor_2], out_file_list_tmp = Fastq_QC(args.input[0], args.input[1], tmp_dir, threads=args.threads)
+        fq_cor_list, out_file_list_tmp = Fastq_QC(args.input, tmp_dir, threads=args.threads)
+        logging.info(fq_cor_list)
         copy_file(out_file_list_tmp['file'], outdir)
         with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
             json.dump(out_file_list_tmp['json'], H, indent=2)
@@ -286,6 +305,8 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error(f'Fastqc {e}')
         s = f'Fastqc\tE\t'
+
+
     try:
         write_status(status_report, s)
         try:
