@@ -456,13 +456,13 @@ def chewBBACA_docker(fadir, outdir, schema_dir, training_file='', threads=1):
     return cmd_out, outfile
 
 def SeqSero2_docker(fa, outdir, threads=1):
-    img_name = 'ummidock/seqsero2:alpha-test-1'
+    img_name = 'seqsero2:1.2.1'
     all_data_path = [fa, outdir]
     logfile = os.path.join(outdir, 'SeqSero2.log')
     SeqSero2_dir = os.path.join(outdir, 'SeqSero2')
-    outfile = os.path.join(SeqSero2_dir, 'Seqsero_result.txt')
+    outfile = os.path.join(SeqSero2_dir, 'SeqSero_result.txt')
     mkdir(SeqSero2_dir)
-    cmd = (f'/NGStools/SeqSero2/SeqSero2_package.py -m k -t 4 '
+    cmd = (f'/NGStools/SeqSero2-1.2.1/bin/SeqSero2_package.py -m k -t 4 '
            f'-i {fa} -d {SeqSero2_dir} -p {threads} >{logfile} 2>&1')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:
@@ -470,11 +470,11 @@ def SeqSero2_docker(fa, outdir, threads=1):
     return cmd_out, outfile
 
 def mlst_docker(fa, outdir, threads=1):
-    img_name = 'ummidock/mlst'
+    img_name = 'mlst:2.19'
     all_data_path = [fa, outdir]
     logfile = os.path.join(outdir, 'mlst.log')
     mlst_out = os.path.join(outdir, 'Typing_mlst.out')
-    cmd = (f'mlst {fa} --threads {threads} >{mlst_out} 2>{logfile}')
+    cmd = (f'/Bio/mlst-2.19.0/bin/mlst {fa} --threads {threads} >{mlst_out} 2>{logfile}')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:
         return cmd_out, 0
