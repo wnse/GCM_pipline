@@ -147,7 +147,7 @@ if __name__ == '__main__':
             write_status(status_report, s)
             out_file_list_tmp = Fasta_Taxonomy(scaffolds_fasta_file, tmp_dir, args.db_16S, args.info_16S, args.db_genome, args.info_genome, args.db_genome_fa, args.threads, args.name)
             species_file = out_file_list_tmp['file'][-1]
-            species = pd.read_csv(species_file, index_col=0, header=None).loc['species',1]
+            species = ' '.join(pd.read_csv(species_file, index_col=0, header=None).loc[['family','species'],1].to_list())
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Taxonomy.json'), 'w') as H:
                 json.dump(out_file_list_tmp['json'], H, indent=2)

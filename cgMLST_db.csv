@@ -1,11 +1,35 @@
 Species,schema_seed,training_file,cgFile
-Staphylococcus aureus,/Bio/cgMLST_DB/Staphylococcus_aureus/database/schema_seed/,/Bio/cgMLST_DB/Staphylococcus_aureus/ref/Staphylococcus_aureus.trn,/Bio/cgMLST_DB/Staphylococcus_aureus/ref/cgMLST.tsv
-Vibrio parahaemolyticus,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/database/schema_seed/,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/ref/GCF_004006515.1_TrainedFile.trn,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/ref/cgMLST.tsv
-Listeria monocytogenes,/Bio/cgMLST_DB/Listeria_monocytogenes/database/schema_seed/,/Bio/cgMLST_DB/Listeria_monocytogenes/ref/Listeria_monocytogenes.trn,/Bio/cgMLST_DB/Listeria_monocytogenes/ref/cgMLST.tsv
-Bacillus anthracis,/Bio/cgMLST_DB/Bacillus_anthracis/database/schema_seed/,,/Bio/cgMLST_DB/Bacillus_anthracis/ref/cgMLST.tsv
-Klebsiella pneumoniae,/Bio/cgMLST_DB/Klebsiella_pneumoniae/database/schema_seed/,/Bio/cgMLST_DB/Klebsiella_pneumoniae/ref/GCF_000240185.1_TrainedFile.trn,/Bio/cgMLST_DB/Klebsiella_pneumoniae/ref/cgMLST_base_0.99.tsv
+Acinetobacter baumannii,/Bio/cgMLST_DB/Acinetobacter_baumannii/database/schema_seed/,/Bio/cgMLST_DB/Acinetobacter_baumannii/ref/Acinetobacter_baumannii.trn,/Bio/cgMLST_DB/Acinetobacter_baumannii/ref/cgMLST_base_0.99.tsv
+Bacillus anthracis,/Bio/cgMLST_DB/Bacillus_anthracis/database/schema_seed/,/Bio/cgMLST_DB/Bacillus_anthracis/ref/GCF_000008445.1_TrainedFile.trn,/Bio/cgMLST_DB/Bacillus_anthracis/ref/cgMLST_base_0.99.tsv
+Bordetella pertussis,/Bio/cgMLST_DB/Bordetella_pertussis/database/schema_seed/,/Bio/cgMLST_DB/Bordetella_pertussis/ref/GCF_000306945.1_TrainedFile.trn,/Bio/cgMLST_DB/Bordetella_pertussis/ref/cgMLST_base_0.99.tsv
+Burkholderia pseudomallei,/Bio/cgMLST_DB/Burkholderia_pseudomallei/database/schema_seed/,/Bio/cgMLST_DB/Burkholderia_pseudomallei/ref/Burkholderia_pseudomallei.trn,/Bio/cgMLST_DB/Burkholderia_pseudomallei/ref/cgMLST_base_0.99.tsv
+Campylobacter jejuni,/Bio/cgMLST_DB/Campylobacter_jejuni/database/schema_seed/,/Bio/cgMLST_DB/Campylobacter_jejuni/ref/Campylobacter_jejuni.trn,/Bio/cgMLST_DB/Campylobacter_jejuni/ref/cgMLST_base_0.99.tsv
+Clostridioides difficile,/Bio/cgMLST_DB/Clostridioides_difficile/database/schema_seed/,/Bio/cgMLST_DB/Clostridioides_difficile/ref/GCF_018885085.1_TrainedFile.trn,/Bio/cgMLST_DB/Clostridioides_difficile/ref/cgMLST_base_0.99.tsv
 Clostridium botulinum,/Bio/cgMLST_DB/Clostridium_botulinum/database/schema_seed/,/Bio/cgMLST_DB/Clostridium_botulinum/ref/GCF_000063585.1_TrainedFile.trn,/Bio/cgMLST_DB/Clostridium_botulinum/ref/cgMLST_base_0.99.tsv
-Campylobacter coli,/Bio/cgMLST_DB/Campylobacter_coli/database/schema_seed/,/Bio/cgMLST_DB/Campylobacter_coli/ref/GCF_009730395.1_TrainingFile.trn,/Bio/cgMLST_DB/Campylobacter_coli/ref/cgMLST_base_0.99.tsv
-Salmonella enterica,/Bio/cgMLST_DB/Salmonella_enterica/database/schema_seed/,/Bio/cgMLST_DB/Salmonella_enterica/ref/GCF_000006945.2_TrainedFile.trn,/Bio/cgMLST_DB/Salmonella_enterica/ref/cgMLST_base_0.99.tsv
-Escherichia coli,/Bio/cgMLST_DB/Escherichia_coli/database/schema_seed/,/Bio/cgMLST_DB/Escherichia_coli/ref/GCF_000005845.2_TrainingFile.trn,
+Corynebacterium diphtheriae,/Bio/cgMLST_DB/Corynebacterium_diphtheriae/database/schema_seed/,/Bio/cgMLST_DB/Corynebacterium_diphtheriae/ref/Corynebacterium_diphtheriae.trn,/Bio/cgMLST_DB/Corynebacterium_diphtheriae/ref/cgMLST_base_0.99.tsv
+Haemophilus influenzae,/Bio/cgMLST_DB/Haemophilus_influenzae/database/schema_seed/,/Bio/cgMLST_DB/Haemophilus_influenzae/ref/GCF_004802225.1_TrainedFile.trn,/Bio/cgMLST_DB/Haemophilus_influenzae/ref/cgMLST_base_0.99.tsv
+Helicobacter pylori,/Bio/cgMLST_DB/Helicobacter_pylori/database/schema_seed/,/Bio/cgMLST_DB/Helicobacter_pylori/ref/Helicobacter_pylori.trn,/Bio/cgMLST_DB/Helicobacter_pylori/ref/cgMLST_0.99.tsv
+Klebsiella pneumoniae,/Bio/cgMLST_DB/Klebsiella_pneumoniae/database/schema_seed/,/Bio/cgMLST_DB/Klebsiella_pneumoniae/ref/GCF_000240185.1_TrainedFile.trn,/Bio/cgMLST_DB/Klebsiella_pneumoniae/ref/cgMLST_base_0.99.tsv
+Legionella pneumophila,/Bio/cgMLST_DB/Legionella_pneumophila/database/schema_seed/,/Bio/cgMLST_DB/Legionella_pneumophila/ref/Legionella_pneumophila.trn,/Bio/cgMLST_DB/Legionella_pneumophila/ref/cgMLST_base_0.99.tsv
+Listeria monocytogenes,/Bio/cgMLST_DB/Listeria_monocytogenes/database/schema_seed/,/Bio/cgMLST_DB/Listeria_monocytogenes/ref/Listeria_monocytogenes.trn,/Bio/cgMLST_DB/Listeria_monocytogenes/ref/cgMLST_base_0.99.tsv
+Mycobacterium tuberculosis,/Bio/cgMLST_DB/Mycobacterium_tuberculosis/database/schema_seed/,/Bio/cgMLST_DB/Mycobacterium_tuberculosis/ref/Mycobacterium_tuberculosis.trn,/Bio/cgMLST_DB/Mycobacterium_tuberculosis/ref/cgMLST_base_0.99.tsv
+Neisseria meningitidis,/Bio/cgMLST_DB/Neisseria_meningitidis/database/schema_seed/,/Bio/cgMLST_DB/Neisseria_meningitidis/ref/GCF_008330805.1_TrainedFile.trn,/Bio/cgMLST_DB/Neisseria_meningitidis/ref/cgMLST_base_0.99.tsv
+Pseudomonas aeruginosa,/Bio/cgMLST_DB/Pseudomonas_aeruginosa/database/schema_seed/,/Bio/cgMLST_DB/Pseudomonas_aeruginosa/ref/GCF_000006765.1_TrainedFile.trn,/Bio/cgMLST_DB/Pseudomonas_aeruginosa/ref/cgMLST_base_0.99.tsv
+Salmonella,/Bio/cgMLST_DB/Salmonella/database/schema_seed/,/Bio/cgMLST_DB/Salmonella/ref/GCF_000006945.2_TrainedFile.trn,/Bio/cgMLST_DB/Salmonella/ref/cgMLST_base_0.99.tsv
+Staphylococcus aureus,/Bio/cgMLST_DB/Staphylococcus_aureus/database/schema_seed/,/Bio/cgMLST_DB/Staphylococcus_aureus/ref/Staphylococcus_aureus.trn,/Bio/cgMLST_DB/Staphylococcus_aureus/ref/cgMLST_base_0.99.tsv
+Streptococcus pneumoniae,/Bio/cgMLST_DB/Streptococcus_pneumoniae/database/schema_seed/,/Bio/cgMLST_DB/Streptococcus_pneumoniae/ref/GCF_900618125.1_TrainedFile.trn,/Bio/cgMLST_DB/Streptococcus_pneumoniae/ref/cgMLST_base_0.99.tsv
+Streptococcus pyogenes,/Bio/cgMLST_DB/Streptococcus_pyogenes/database/schema_seed/,/Bio/cgMLST_DB/Streptococcus_pyogenes/ref/Streptococcus_pyogenes.trn,/Bio/cgMLST_DB/Streptococcus_pyogenes/ref/cgMLST_base_0.99.tsv
+Streptococcus suis,/Bio/cgMLST_DB/Streptococcus_suis/database/schema_seed/,/Bio/cgMLST_DB/Streptococcus_suis/ref/GCF_000026745.1_TrainedFile.trn,/Bio/cgMLST_DB/Streptococcus_suis/ref/cgMLST_base_0.99.tsv
+Vibrio cholerae,/Bio/cgMLST_DB/Vibrio_cholerae/database/schema_seed/,/Bio/cgMLST_DB/Vibrio_cholerae/ref/Vibrio_cholerae.trn,/Bio/cgMLST_DB/Vibrio_cholerae/ref/cgMLST_base_0.99.tsv
+Vibrio parahaemolyticus,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/database/schema_seed/,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/ref/GCF_004006515.1_TrainedFile.trn,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/ref/cgMLST_base_0.99.tsv
+Yersinia enterocolitica,/Bio/cgMLST_DB/Yersinia_enterocolitica/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_enterocolitica/ref/Yersinia_enterocolitica.trn,/Bio/cgMLST_DB/Yersinia_enterocolitica/ref/cgMLST_base_0.99.tsv
+Yersinia pestis,/Bio/cgMLST_DB/Yersinia_pestis/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_pestis/ref/GCF_000222975.1_TrainedFile.trn,/Bio/cgMLST_DB/Yersinia_pestis/ref/cgMLST_base_0.99.tsv
+Yersinia pseudotuberculosis,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/ref/GCF_000834295.1_TrainedFile.trn,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/ref/cgMLST_base_0.99.tsv
+Aeromonas,/Bio/cgMLST_DB/Aeromonas/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Aeromonas/ref/cgMLST_base_0.99.tsv
+Anaplasmataceae,/Bio/cgMLST_DB/Anaplasmataceae/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Anaplasmataceae/ref/cgMLST_base_0.99.tsv
+Bartonella,/Bio/cgMLST_DB/Bartonella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Bartonella/ref/cgMLST_base_0.99.tsv
+Brucella,/Bio/cgMLST_DB/Brucella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Brucella/ref/cgMLST_base_0.99.tsv
+Citrobacter,/Bio/cgMLST_DB/Citrobacter/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Citrobacter/ref/cgMLST_base_0.99.tsv
+Cronobacter,/Bio/cgMLST_DB/Cronobacter/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Cronobacter/ref/cgMLST_base_0.99.tsv
+Shigella,/Bio/cgMLST_DB/Shigella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Shigella/ref/cgMLST_base_0.99.tsv
 

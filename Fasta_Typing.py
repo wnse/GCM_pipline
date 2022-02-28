@@ -85,13 +85,19 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
     out_file_list['json'] = {}
     out_file_list['file'] = []
     db_dict = pd.read_csv(schema_path, index_col=0).to_dict(orient='index')
+    logging.info(species)
     try:
         species_used = None
         if species in db_dict:
             species_used = species
         else:
-            if species.split()[0] in db_dict:
+            if ' '.join(species.split()[-2:]) in db_dict:
+                species_used = ' '.join(species.split()[-2:])
+            if species.split()[1] in db_dict:
+                species_used = species.split()[1]
+            elif species.split()[0] in db_dict:
                 species_used = species.split()[0]
+
         if species_used in db_dict:
             logging.info(db_dict[species_used])
             # (cgmlst_csv, cgmlst_summary, cgmlst_tree) = run_chewBBACA(fa, outdir, db_dict[species]['schema_seed'], db_dict[species]['training_file'], db_dict[species]['cgFile'], threads)
@@ -191,7 +197,7 @@ if __name__ == '__main__':
             write_status(status_report, s)
             out_file_list_tmp = Fasta_Taxonomy(scaffolds_fasta_file, tmp_dir, args.db_16S, args.info_16S, args.db_genome, args.info_genome, args.db_genome_fa, args.threads, args.name)
             species_file = out_file_list_tmp['file'][-1]
-            species = pd.read_csv(species_file, index_col=0, header=None).loc['species',1]
+            species = ' '.join(pd.read_csv(species_file, index_col=0, header=None).loc[['family','species'],1].to_list())
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Taxonomy.json'), 'w') as H:
                 json.dump(out_file_list_tmp['json'], H, indent=2)

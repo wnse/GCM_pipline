@@ -23,7 +23,9 @@ docker load -i dockerImages/GCM/diamond.tar
 docker load -i dockerImages/GCM/antismash.tar
 docker load -i dockerImages/GCM/rgi.tar
 docker load -i dockerImages/cgMLST/chewbbaca_v1.tar
-docker load -i dockerImages/cgMLST/seqsero2.tar
-docker load -i dockerImages/cgMLST/mlst.tar
+#docker load -i dockerImages/cgMLST/seqsero2.tar
+docker load -i dockerImages/cgMLST/seqsero2_1.2.1.tar
+#docker load -i dockerImages/cgMLST/mlst.tar
+docker load -i dockerImages/cgMLST/mlst_2.19.tar
 docker load -i dockerImages/cgMLST/rbase.tar
 docker load -i dockerImages/GCM/checkm.tar

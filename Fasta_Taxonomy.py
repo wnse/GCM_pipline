@@ -169,12 +169,13 @@ def Fasta_genome_Taxonomy(fa, outdir, db_genome, db_info, db_genome_fa_dir, thre
 
 def merge_tax_genome_16s(tax_file_genome, tax_file_16s, outfile, name):
     logging.info('merge_tax_genome_16s')
-    genus_genome, species_genome, strain_genome, ani_genome, genus_16s, species_16S = [''] * 6
+    family_genome, genus_genome, species_genome, strain_genome, ani_genome, family_16s, genus_16s, species_16S = [''] * 8
     try:
         if tax_file_16s:
             df_16s = pd.read_csv(tax_file_16s)
             species_16S = df_16s.loc[0,'species']
             genus_16s = df_16s.loc[0,'lineage'].split('|')[-2].split('_')[-1]
+            family_16s = df_16s.loc[0,'lineage'].split('|')[-3].split('_')[-1]
     except Exception as e:
         logging.error(f'merge tax 16S {e}')
     try:
@@ -184,16 +185,23 @@ def merge_tax_genome_16s(tax_file_genome, tax_file_16s, outfile, name):
             if species_genome in ('', '-'):
                 species_genome = df_genome.loc[0,'Species ID']
             genus_genome = df_genome.loc[0, 'Tax'].split('|')[-2].split('_')[-1]
+            family_genome = df_genome.loc[0, 'Tax'].split('|')[-3].split('_')[-1]
             strain_genome = df_genome.loc[0, 'Strain id']
             ani_genome = df_genome.loc[0, 'fastANI']
     except Exception as e:
         logging.error(f'merge tax genome {e}')
 
+    logging.info(f'family: {family_genome}')
+    logging.info(f'genus: {genus_genome}')
+    logging.info(f'species: {species_genome}, related_strain: {strain_genome}')
+    if genus_genome != genus_16s:
+        logging.info(f'Family inconsist of genome {family_genome} and 16S {family_16s}')
     if genus_genome != genus_16s:
         logging.info(f'Genus inconsist of genome {genus_genome} and 16S {genus_16s}')
     if species_genome != species_16S:
         logging.info(f'Species inconsist of genome {species_genome} and 16S {species_16S}')
-    tax_summary_dict = {'sample':name, 'genus':genus_genome, 'species':species_genome, 'related_strain':strain_genome, 'ANI':ani_genome}
+    tax_summary_dict = {'sample':name, 'family':family_genome, 'genus':genus_genome, 'species':species_genome,
+                        'related_strain':strain_genome, 'ANI':ani_genome}
     pd.DataFrame.from_dict(tax_summary_dict, orient='index').T.set_index('sample').T.to_csv(outfile)
 
 def Fasta_Taxonomy(fa, outdir, db_16s, info_16s, db_genome, info_genome, db_genome_fa, threads, name):
