@@ -154,6 +154,15 @@ def merge(dir_list, name_list, outdir='./', type='Fastqc', cofig_file=None):
 
         if type in ['Typing']:
             cgfile_list, name_list_tmp = get_file_list(dir_list, name_list, "results_alleles.tsv")
+
+            type_tax = 'Taxonomy'
+            json_list, name_list_tmp = get_file_list(dir_list, name_list, type_tax + '.json')
+            total_json_dict_tax, total_df_tax = merge_json(json_list, name_list_tmp, type_tax, cofig_file)
+            if not total_df_tax.empty:
+                total_df_tax.to_csv(os.path.join(outdir, type_tax + '.csv'))
+            for i, d in enumerate(total_json_dict_tax['samples']):
+                total_json_dict['samples'][i].update(d)
+
             out_tree_file, out_cgMLST_file = None, None
             if cgfile_list:
                 try:

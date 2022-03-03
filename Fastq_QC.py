@@ -38,8 +38,8 @@ def cal_q20_by_seq(seq_list):
 
 def cal_q20(f, threads=1, max_seq_per_t=1000000):
     threads = int(threads)
-    if threads > 30:
-        threads = 30
+    if threads > 5:
+        threads = 5
     ft = file_type(f)
     if ft == 'FQ':
         open_file = open

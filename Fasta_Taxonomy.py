@@ -187,7 +187,11 @@ def merge_tax_genome_16s(tax_file_genome, tax_file_16s, outfile, name):
             genus_genome = df_genome.loc[0, 'Tax'].split('|')[-2].split('_')[-1]
             family_genome = df_genome.loc[0, 'Tax'].split('|')[-3].split('_')[-1]
             strain_genome = df_genome.loc[0, 'Strain id']
-            ani_genome = df_genome.loc[0, 'fastANI']
+            ani_genome = ''
+            if 'fastANI' in df_genome.columns:
+                ani_genome = df_genome.loc[0, 'fastANI']
+            if not ani_genome:
+                ani_genome = df_genome.loc[0, 'OrthoANI']
     except Exception as e:
         logging.error(f'merge tax genome {e}')
 
@@ -234,7 +238,7 @@ def Fasta_Taxonomy(fa, outdir, db_16s, info_16s, db_genome, info_genome, db_geno
         logging.info(f'Fasta_Taxonomy not exists {tax_file_genome}')
     merge_file = os.path.join(outdir, 'tax_summary.csv')
     merge_tax_genome_16s(tax_file_genome, tax_file_16s, merge_file, name)
-    df_tmp = pd.read_csv(merge_file, index_col=0)[name].to_dict()
+    df_tmp = pd.read_csv(merge_file, index_col=0).fillna('')[name].to_dict()
     out_file_list['json'].update({'tax_summary': df_tmp})
     out_file_list['file'].append(merge_file)
     return out_file_list

@@ -25,11 +25,11 @@ Vibrio parahaemolyticus,/Bio/cgMLST_DB/Vibrio_parahaemolyticus/database/schema_s
 Yersinia enterocolitica,/Bio/cgMLST_DB/Yersinia_enterocolitica/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_enterocolitica/ref/Yersinia_enterocolitica.trn,/Bio/cgMLST_DB/Yersinia_enterocolitica/ref/cgMLST_base_0.99.tsv
 Yersinia pestis,/Bio/cgMLST_DB/Yersinia_pestis/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_pestis/ref/GCF_000222975.1_TrainedFile.trn,/Bio/cgMLST_DB/Yersinia_pestis/ref/cgMLST_base_0.99.tsv
 Yersinia pseudotuberculosis,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/database/schema_seed/,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/ref/GCF_000834295.1_TrainedFile.trn,/Bio/cgMLST_DB/Yersinia_pseudotuberculosis/ref/cgMLST_base_0.99.tsv
-Aeromonas,/Bio/cgMLST_DB/Aeromonas/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Aeromonas/ref/cgMLST_base_0.99.tsv
-Anaplasmataceae,/Bio/cgMLST_DB/Anaplasmataceae/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Anaplasmataceae/ref/cgMLST_base_0.99.tsv
-Bartonella,/Bio/cgMLST_DB/Bartonella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Bartonella/ref/cgMLST_base_0.99.tsv
-Brucella,/Bio/cgMLST_DB/Brucella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Brucella/ref/cgMLST_base_0.99.tsv
-Citrobacter,/Bio/cgMLST_DB/Citrobacter/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Citrobacter/ref/cgMLST_base_0.99.tsv
-Cronobacter,/Bio/cgMLST_DB/Cronobacter/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Cronobacter/ref/cgMLST_base_0.99.tsv
-Shigella,/Bio/cgMLST_DB/Shigella/database/schema_seed/,/Bio/cgMLST_DB/,/Bio/cgMLST_DB/Shigella/ref/cgMLST_base_0.99.tsv
+Aeromonas,/Bio/cgMLST_DB/Aeromonas/database/schema_seed/,,/Bio/cgMLST_DB/Aeromonas/ref/cgMLST_base_0.99.tsv
+Anaplasmataceae,/Bio/cgMLST_DB/Anaplasmataceae/database/schema_seed/,,/Bio/cgMLST_DB/Anaplasmataceae/ref/cgMLST_base_0.99.tsv
+Bartonella,/Bio/cgMLST_DB/Bartonella/database/schema_seed/,,/Bio/cgMLST_DB/Bartonella/ref/cgMLST_base_0.99.tsv
+Brucella,/Bio/cgMLST_DB/Brucella/database/schema_seed/,,/Bio/cgMLST_DB/Brucella/ref/cgMLST_base_0.99.tsv
+Citrobacter,/Bio/cgMLST_DB/Citrobacter/database/schema_seed/,,/Bio/cgMLST_DB/Citrobacter/ref/cgMLST_base_0.99.tsv
+Cronobacter,/Bio/cgMLST_DB/Cronobacter/database/schema_seed/,,/Bio/cgMLST_DB/Cronobacter/ref/cgMLST_base_0.99.tsv
+Shigella,/Bio/cgMLST_DB/Shigella/database/schema_seed/,,/Bio/cgMLST_DB/Shigella/ref/cgMLST_base_0.99.tsv
 

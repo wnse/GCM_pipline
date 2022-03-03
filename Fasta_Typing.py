@@ -84,7 +84,7 @@ def Fasta_Typing(fa, outdir, threads, schema_path, species):
     out_file_list = {}
     out_file_list['json'] = {}
     out_file_list['file'] = []
-    db_dict = pd.read_csv(schema_path, index_col=0).to_dict(orient='index')
+    db_dict = pd.read_csv(schema_path, index_col=0).fillna('').to_dict(orient='index')
     logging.info(species)
     try:
         species_used = None
