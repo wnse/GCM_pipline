@@ -167,8 +167,8 @@
 			"key":["serotype_summary", "predicted_antigenic_profile"],
 			"value":"value"
 		},	
-		"serotype predicted_subspecies":{
-			"key":["serotype_summary", "predicted_subspecies"],
+		"serotype predicted_identification":{
+			"key":["serotype_summary", "predicted_identification"],
 			"value":"value"
 		},
 		"serotype predicted_serotype":{
@@ -195,6 +195,32 @@
 		},
 		"gene_anno_ratio":{
 			"key":["gene_anno_summary", "ratio"],
+			"value":"value"
+		}
+	},
+	"FactorAnno": {
+		"total_gene_num":{
+			"key":["gene_info_summary", "total_gene_num"],
+			"value":"value"
+		},
+		"total_gene_len":{
+			"key":["gene_info_summary", "total_gene_len"],
+			"value":"value"
+		},
+		"avg_gene_len":{
+			"key":["gene_info_summary", "avg_gene_len"],
+			"value":"value"
+		},
+		"avg_inter_len":{
+			"key":["gene_info_summary", "avg_inter_len"],
+			"value":"value"
+		},
+		"partial_gene_ratio":{
+			"key":["gene_info_summary", "partial_gene_ratio"],
+			"value":"value"
+		},
+		"genome_size":{
+			"key":["gene_info_summary", "genome_size"],
 			"value":"value"
 		}
 	}

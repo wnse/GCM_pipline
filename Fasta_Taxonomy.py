@@ -143,7 +143,10 @@ def Fasta_genome_Taxonomy(fa, outdir, db_genome, db_info, db_genome_fa_dir, thre
     mash_dist_out = run_mash_dist(fa, db_genome, mash_dist_out_file, threads=threads)
     if mash_dist_out == 0:
         mash_dist_out_tax = os.path.join(outdir, 'tax.genome.csv')
-        merge_msh_with_tax(mash_dist_out_file, db_info, mash_dist_out_tax, cutoff=3)
+        try:
+            merge_msh_with_tax(mash_dist_out_file, db_info, mash_dist_out_tax, cutoff=3)
+        except Exception as e:
+            logging.error(f'merge_msh_with_tax, {e}')
         df_genome_tax = pd.read_csv(mash_dist_out_tax, index_col=0)
         if os.path.isfile(mash_dist_out_tax):
             ref_list = pd.read_csv(mash_dist_out_tax)['reference']

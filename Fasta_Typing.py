@@ -232,6 +232,12 @@ if __name__ == '__main__':
             # post_url(taskID, 'Typing')
         except Exception as e:
             logging.error(f'Typing status {e}')
+    else:
+        try:
+            post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
+        except Exception as e:
+            logging.error(f'post_url getTaskRunningStatus {e}')
+
 
     if not args.debug:
         try:

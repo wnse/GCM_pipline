@@ -2,26 +2,39 @@ import os
 import shutil
 import urllib.parse
 import urllib.request
+from urllib.error import URLError
 import logging
 import json
 import argparse
 import datetime
+import time
 
 def post_url(taskID, status, url='http://localhost/task/createSubNodeReport/'):
     url_tmp = urllib.parse.urljoin(url, f'{taskID}/{status}')
     logging.info(url_tmp)
-    try:
-        request = urllib.request.Request(url_tmp)
-        respose = json.loads(urllib.request.urlopen(request).read().decode('utf-8'))
-        if respose['status']:
-            logging.error(f'post url {url_tmp} ')
-            logging.error(f'respose {respose}')
-        else:
-            logging.info(f'post url {url_tmp} ')
-            logging.info(f'respose {respose}')
-        return respose['status']
-    except Exception as e:
-        logging.error(f'post url {e}')
+    keep_request = True
+    try_request_time = 1
+    while keep_request:
+        try:
+            request = urllib.request.Request(url_tmp)
+            respose = json.loads(urllib.request.urlopen(request).read().decode('utf-8'))
+            if respose['status']:
+                logging.error(f'post url {url_tmp} ')
+                logging.error(f'respose {respose}')
+            else:
+                logging.info(f'post url {url_tmp} ')
+                logging.info(f'respose {respose}')
+            keep_request = False
+            return respose['status']
+        except URLError as e:
+            logging.info(f'{e} try {try_request_time}')
+            try_request_time += 1
+            if try_request_time > 5:
+                keep_request = False
+            time.sleep(1)
+        except Exception as e:
+            keep_request = False
+            logging.error(f'post url {e}')
 
 def copy_file(out_file_list, dest_dir):
     for i in out_file_list:

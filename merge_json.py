@@ -43,11 +43,13 @@ def get_all_value(json_dict, config_file, step='Fastqc'):
                 df_dict.update(j)
     return df_dict
 
-def merge_json(json_list, name_list, step, config_file):
+# def merge_json(json_list, name_list, step, config_file):
+def merge_json(dir_list, name_list, step, config_file):
     total_json = {}
     total_json['batch'] = {}
     total_json['samples'] = []
     total_df = pd.DataFrame()
+    json_list, name_list_tmp, file_fail_list, name_fail_list = get_file_list(dir_list, name_list, step+'.json')
     for i, j in enumerate(json_list):
         with open(j, 'rt') as h:
             try:
@@ -55,13 +57,18 @@ def merge_json(json_list, name_list, step, config_file):
                 if config_file:
                     tmp_dict = get_all_value(tmp, config_file, step)
                     tmp_df = pd.DataFrame.from_dict(tmp_dict, orient='index')
-                    tmp_df.columns = [name_list[i]]
+                    tmp_df.columns = [name_list_tmp[i]]
                     total_df = pd.concat([total_df, tmp_df], axis=1)
             except Exception as e:
                 logging.error(f'{j} {e}')
-            tmp['sampleID'] = name_list[i]
+            tmp['sampleID'] = name_list_tmp[i]
             tmp['samplePath'] = os.path.split(j)[0]
             total_json['samples'].append(tmp)
+    for i, j in enumerate(file_fail_list):
+        tmp = {}
+        tmp['sampleID'] = name_fail_list[i]
+        tmp['samplePath'] = os.path.split(j)[0]
+        total_json['samples'].append(tmp)
     return total_json, total_df
 
 def run_r_tree(cg_mlst_file, outdir):
@@ -93,7 +100,7 @@ def make_cg_tree(cg_file_list, name_list, outdir):
     return tree_file, cg_total_file
 
 
-def get_rgi_csv(f, name='test', cutoff=70):
+def get_rgi_csv(f, name='test', cutoff=90):
     df = pd.read_csv(f)
     if 'Best_Identities' in df.columns:
         df = df[df['Best_Identities']>cutoff]
@@ -112,52 +119,66 @@ def merge_factor_csv(file_list, name_list, col='Drug Class'):
     for i in name_list:
         if i not in df_sta.columns:
             df_sta[i] = 0
-    return df_sta
+    return df_sta.T
 
 def get_file_list(dir_list, name_list, file_name):
     file_list = []
     name_list_tmp = []
+    file_fail_list = []
+    name_fail_list = []
     for i, d in enumerate(dir_list):
         f = os.path.join(d, file_name)
         if os.path.isfile(f):
             if not os.path.getsize(f):
                 logging.info(f'{f} is empty')
+                file_fail_list.append(f)
+                name_fail_list.append(name_list[i])
             else:
                 file_list.append(f)
                 name_list_tmp.append(name_list[i])
         else:
-            logging.info(f'{f} not exists')
-    return file_list, name_list_tmp
-
+            logging.info(f'{name_list[i]} {f} not exists')
+            file_fail_list.append(f)
+            name_fail_list.append(name_list[i])
+    return file_list, name_list_tmp, file_fail_list, name_fail_list
 
 def merge(dir_list, name_list, outdir='./', type='Fastqc', cofig_file=None):
     if type in ['Fastqc', 'Assembly', 'Taxonomy', 'FactorAnno', 'Typing', 'GeneAnno']:
-        json_list, name_list_tmp = get_file_list(dir_list, name_list, type+'.json')
-        total_json_dict, total_df = merge_json(json_list, name_list_tmp, type, cofig_file)
+        # json_list, name_list_tmp = get_file_list(dir_list, name_list, type+'.json')
+        total_json_dict, total_df = merge_json(dir_list, name_list, type, cofig_file)
         if not total_df.empty:
             total_df.to_csv(os.path.join(outdir, type+'.csv'))
 
-        if type in['FactorAnno']:
+        if type in ['FactorAnno']:
             filename = 'FactorAnno_VFs.csv'
-            VF_list, name_list_tmp = get_file_list(dir_list, name_list, filename)
+            VF_list, name_list_tmp, _, _ = get_file_list(dir_list, name_list, filename)
             out_file = os.path.join(outdir, filename)
             df_out = merge_factor_csv(VF_list, name_list_tmp, col='VFs')
             df_out.to_csv(out_file)
             total_json_dict['batch'].update({'vfdb_csv':filename})
 
             filename = 'FactorAnno_rgi.csv'
-            rgi_list, name_list_tmp = get_file_list(dir_list, name_list, filename)
+            rgi_list, name_list_tmp, _, _ = get_file_list(dir_list, name_list, filename)
             out_file = os.path.join(outdir, filename)
             df_out = merge_factor_csv(rgi_list, name_list_tmp)
             df_out.to_csv(out_file)
             total_json_dict['batch'].update({'rgi_csv': filename})
 
+        if type in ['GeneAnno']:
+            type_factor = 'FactorAnno'
+            # json_list, name_list_factor_tmp = get_file_list(dir_list, name_list, type_factor + '.json')
+            total_json_dict_tax, total_df_factor = merge_json(dir_list, name_list, type_factor, cofig_file)
+            if not total_df_factor.empty:
+                total_df_factor.to_csv(os.path.join(outdir, type_factor + '.csv'))
+            for i, d in enumerate(total_json_dict_tax['samples']):
+                total_json_dict['samples'][i].update(d)
+
         if type in ['Typing']:
-            cgfile_list, name_list_tmp = get_file_list(dir_list, name_list, "results_alleles.tsv")
+            cgfile_list, name_list_tmp, _, _ = get_file_list(dir_list, name_list, "results_alleles.tsv")
 
             type_tax = 'Taxonomy'
-            json_list, name_list_tmp = get_file_list(dir_list, name_list, type_tax + '.json')
-            total_json_dict_tax, total_df_tax = merge_json(json_list, name_list_tmp, type_tax, cofig_file)
+            # json_list, name_list_tax_tmp = get_file_list(dir_list, name_list, type_tax + '.json')
+            total_json_dict_tax, total_df_tax = merge_json(dir_list, name_list, type_tax, cofig_file)
             if not total_df_tax.empty:
                 total_df_tax.to_csv(os.path.join(outdir, type_tax + '.csv'))
             for i, d in enumerate(total_json_dict_tax['samples']):

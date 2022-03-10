@@ -91,7 +91,7 @@ if __name__ == '__main__':
         sys.exit(e)
 
     post_pid(taskID)
-
+    fq_cor_list = []
     if args.type == 'fastqPE':
         fq_cor_1, fq_cor_2 = ('', '')
         try:
