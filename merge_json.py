@@ -100,22 +100,25 @@ def make_cg_tree(cg_file_list, name_list, outdir):
     return tree_file, cg_total_file
 
 
-def get_rgi_csv(f, name='test', cutoff=90):
+def get_rgi_csv(f, cutoff=90):
     df = pd.read_csv(f)
     if 'Best_Identities' in df.columns:
         df = df[df['Best_Identities']>cutoff]
     elif 'Identities' in df.columns:
         df = df[df['Identities']>cutoff]
-    df['sampleID'] = name
+    # df['sampleID'] = name
     return df
 
 def merge_factor_csv(file_list, name_list, col='Drug Class'):
     df_total = pd.DataFrame()
     for i, f in enumerate(file_list):
         if os.path.isfile(f):
-            df_tmp = get_rgi_csv(f, name=name_list[i])
-            df_total = pd.concat([df_total, df_tmp], ignore_index=True)
-    df_sta = df_total.groupby([col, 'sampleID'])['Contig'].count().unstack().fillna(0).rename_axis(index=None,columns=None)
+            df_tmp = get_rgi_csv(f)
+            df_tmp = df_tmp[col].str.split('; ').apply(pd.Series).stack().value_counts()
+            df_tmp.name = name_list[i]
+            df_total = pd.concat([df_total, df_tmp], axis=1)
+    # df_sta = df_total.groupby([col, 'sampleID'])['Contig'].count().unstack().fillna(0).rename_axis(index=None,columns=None)
+    df_sta = df_total.fillna(0)
     for i in name_list:
         if i not in df_sta.columns:
             df_sta[i] = 0
