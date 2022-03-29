@@ -238,6 +238,7 @@ if __name__ == '__main__':
                 logging.error(f'Fastqc {e}')
                 s = f'Fastqc\tE\t'
             try:
+                post_url(taskID, 'Fastqc')
                 write_status(status_report, s)
             except Exception as e:
                 logging.error(f'Fastqc status {e}')
@@ -259,6 +260,7 @@ if __name__ == '__main__':
         try:
             write_status(status_report, s)
             try:
+                post_url(taskID, 'Assembly')
                 post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
             except Exception as e:
                 logging.error(f'post_url getTaskRunningStatus {e}')

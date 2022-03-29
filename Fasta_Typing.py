@@ -206,6 +206,7 @@ if __name__ == '__main__':
             logging.error(f'Taxonomy {e}')
             s = f'Taxonomy\tE\t'
         try:
+            post_url(taskID, 'Taxonomy')
             write_status(status_report, s)
         except Exception as e:
             logging.error(f'Taxonomy status {e}')
@@ -234,6 +235,7 @@ if __name__ == '__main__':
             logging.error(f'Typing status {e}')
     else:
         try:
+            post_url(taskID, 'Typing')
             post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
         except Exception as e:
             logging.error(f'post_url getTaskRunningStatus {e}')

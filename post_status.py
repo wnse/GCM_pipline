@@ -31,7 +31,7 @@ def post_url(taskID, status, url='http://localhost/task/createSubNodeReport/'):
             try_request_time += 1
             if try_request_time > 5:
                 keep_request = False
-            time.sleep(1)
+            time.sleep(10)
         except Exception as e:
             keep_request = False
             logging.error(f'post url {e}')

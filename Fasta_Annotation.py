@@ -283,6 +283,7 @@ if __name__ == '__main__':
             logging.error(f'FactorAnno {e}')
             s = f'FactorAnno\tE\t'
         try:
+            post_url(taskID, 'FactorAnno')
             write_status(status_report, s)
         except Exception as e:
             logging.error(f'FactorAnno status {e}')
@@ -304,6 +305,7 @@ if __name__ == '__main__':
         try:
             write_status(status_report, s)
             try:
+                post_url(taskID, 'GeneAnno')
                 post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
             except Exception as e:
                 logging.error(f'post_url getTaskRunningStatus {e}')

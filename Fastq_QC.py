@@ -310,6 +310,7 @@ if __name__ == '__main__':
     try:
         write_status(status_report, s)
         try:
+            post_url(taskID, 'Fastqc')
             post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
         except Exception as e:
             logging.error(f'post_url getTaskRunningStatus {e}')
