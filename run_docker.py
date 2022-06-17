@@ -62,7 +62,7 @@ def trim_docker_se(fq, outdir, threads):
            f'>{logfile} 2>&1')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:
-        return cmd_out, 0, 0
+        return cmd_out, 0
     return cmd_out, fq_trime
 
 def musket_docker(fq_list, outdir, threads):
@@ -141,7 +141,8 @@ def genomescope_docker(histo_file, outdir, read_length):
     return cmd, outfile, outpng
 
 
-def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[21,33,55]):
+# def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[21,33,55]):
+def spades_docker(outdir, PE_fq_list, SE_fq_list=[], pacbio_list=None, nanopore_list=None, threads=1, k_mer=[21,33,55]):
     k_mer_str = 'spades_' + '_'.join([str(i) for i in k_mer])
     k_mer_dir = os.path.join(outdir, k_mer_str)
     mkdir(k_mer_dir)
@@ -150,15 +151,45 @@ def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[
     all_data_path = [outdir]
     pe_input = ''
     se_input = ''
-    if PE_fq_list and len(PE_fq_list) == 2:
-        pe_input = f'--pe1-1 {PE_fq_list[0]} --pe1-2 {PE_fq_list[1]}'
-        all_data_path = PE_fq_list + all_data_path
-    if SE_fq:
-        se_input = f'-s {SE_fq}'
-        all_data_path = all_data_path + [SE_fq]
+    if PE_fq_list:
+        for pe_fq  in PE_fq_list:
+            if len(pe_fq) == 2:
+                if os.path.isfile(pe_fq[0]) and os.path.isfile(pe_fq[1]):
+                    pe_input += f' --pe1-1 {pe_fq[0]} --pe1-2 {pe_fq[1]}'
+                    all_data_path = all_data_path + pe_fq
+                else:
+                    logging.error(f'fastq file path not correct: {pe_fq}')
+
+            else:
+                logging.error(f'fastq file number not correct: {pe_fq}')
+        
+    if SE_fq_list:
+        for se_fq in SE_fq_list:
+            if os.path.isfile(se_fq):
+                se_input += f' -s {se_fq}'
+                all_data_path = all_data_path + [se_fq]
+            else:
+                logging.error(f'fastq file path not correct: {se_fq}')
+    pacbio_fq = ''
+    nanopore_fq = ''
+    if pacbio_list:
+        for fq in pacbio_list:
+            if os.path.isfile(fq):
+                pacbio_fq += f' --pacbio {fq}'
+                all_data_path = all_data_path + [fq]
+            else:
+                logging.error(f'fastq file path not correct: {fq}')
+    if nanopore_list:
+        for fq in nanopore_list:
+            if os.path.isfile(fq):
+                pacbio_fq += f' --nanopore {fq}'
+                all_data_path = all_data_path + [fq]
+            else:
+                logging.error(f'fastq file path not correct: {fq}')
+
     if pe_input or se_input:
         cmd = (f'python /BioBin/SPAdes-3.13.0-Linux/bin/spades.py --careful --sc --disable-gzip-output '
-               f'{pe_input} {se_input} '
+               f'{pe_input} {se_input} {pacbio_fq} {nanopore_fq} '
                f'-k {",".join([str(i) for i in k_mer])} -o {k_mer_dir} -t {threads} '
                f'>{log_file} 2>&1')
     #
@@ -166,6 +197,7 @@ def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[
     #        f'-1 {fq1} -2 {fq2} -k {",".join([str(i) for i in k_mer])} -o {k_mer_dir} -t {threads} '
     #        f'>{log_file} 2>&1')
         cmd_out = run_docker(img_name, all_data_path, cmd)
+        print(cmd_out)
         if cmd_out:
             return cmd_out, 0
         scaffolds_fasta = os.path.join(k_mer_dir, "scaffolds.fasta")

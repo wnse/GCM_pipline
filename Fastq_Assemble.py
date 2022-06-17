@@ -19,9 +19,10 @@ from post_status import post_pid
 from post_status import copy_file
 from post_status import write_status
 
-def run_spades(pe_fq_list, se_fq, outdir, threads):
+# def run_spades(pe_fq_list, se_fq, outdir, threads):
+def run_spades(outdir, pe_fq, se_fq, pacbio_clr, nanopore, threads):
     logging.info('spades')
-    spades_out, scaffolds_fasta = run_docker.spades_docker(pe_fq_list, se_fq, outdir, threads=threads)
+    spades_out, scaffolds_fasta = run_docker.spades_docker(outdir, pe_fq, se_fq, pacbio_clr, nanopore, threads=threads)
     logging.info(spades_out)
     logging.info(scaffolds_fasta)
     return scaffolds_fasta
@@ -112,18 +113,18 @@ def run_checkm(fa, outdir, threads):
     except Exception as e:
         logging.error(f'run_checkm {e}')
 
-def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', fastqc=None, pacbio_fq=None):
+def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', pacbio=None, nanopore=None, fastqc=None):
     mkdir(outdir)
     out_file_list = {}
     out_file_list['json'] = {}
     out_file_list['file'] = []
     scaffolds_fasta = ''
     # if fastqc:
-    fq_cor_1, fq_cor_2 = None, None
-    if len(fq_list) == 2:
-        fq_cor_1, fq_cor_2 = fq_list
-    else:
-        fq_cor_1 = fq_list[0]
+    # fq_cor_1, fq_cor_2 = None, None
+    # if len(fq_list) == 2:
+    #     fq_cor_1, fq_cor_2 = fq_list
+    # else:
+    #     fq_cor_1 = fq_list[0]
     # else:
     #     # [fq_cor_1, fq_cor_2], qc_out_file = Fastq_QC.Fastq_QC(fq1, fq2, outdir, threads=threads)
     #     # out_file_list['json'].update(qc_out_file)
@@ -136,16 +137,34 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', fastqc=None, pacb
     # fq_cor_1, fq_cor_2 = (fq1, fq2)
     # fq_cor_1 = os.path.join(outdir, 'musket_dir', 'trime_corrected.1.fastq') #test
     # fq_cor_2 = os.path.join(outdir, 'musket_dir', 'trime_corrected.2.fastq') #test
-    if fq_cor_1 and fq_cor_2 and pacbio_fq:
-        scaffolds_fasta = run_spades(fq_list, pacbio_fq, outdir, threads=threads)
-    elif fq_cor_1 and fq_cor_2:
-        scaffolds_fasta = run_spades(fq_list, None, outdir, threads=threads)
-    elif fq_cor_1:
-        scaffolds_fasta = run_spades(None, fq_cor_1, outdir, threads=threads)
-        # scaffolds_fasta = os.path.join(outdir, 'spades_21_33_55', 'scaffolds.fasta') #test
-    else:
-        logging.info(f'Assebly for {fq_list} & {pacbio_fq}')
-    if scaffolds_fasta:
+
+    pe_fq, se_fq = [], []
+    scaffolds_fasta = None
+    for fqs in fq_list:
+        if len(fqs) == 2:
+            pe_fq.append(fqs)
+        elif len(fqs) == 1:
+            se_fq.extend(fqs)
+        else:
+            logging.error(f'fastq file number not correct: {fqs}')
+    # if pacbio_ccs:
+    #     se_fq.extend(pacbio_ccs)
+    try:
+        scaffolds_fasta = run_spades(outdir, pe_fq, se_fq, pacbio, nanopore, threads=threads)
+        # logging.info(f'Assebly for {pe_fq} | {se_fq} | {pacbio} | {nanopore}')
+    except Exception as e:
+        logging.error(f'Fastq_Assemble Assembly {e}')
+
+    # if fq_cor_1 and fq_cor_2 and pacbio_ccs:
+    #     scaffolds_fasta = run_spades(fq_list, pacbio_fq, outdir, threads=threads)
+    # elif fq_cor_1 and fq_cor_2:
+    #     scaffolds_fasta = run_spades(fq_list, None, outdir, threads=threads)
+    # elif fq_cor_1:
+    #     scaffolds_fasta = run_spades(None, fq_cor_1, outdir, threads=threads)
+    #     # scaffolds_fasta = os.path.join(outdir, 'spades_21_33_55', 'scaffolds.fasta') #test
+    # else:
+    #     logging.info(f'Assebly for {fq_list} & {pacbio_fq}')
+    if os.path.isfile(scaffolds_fasta):
         scaffolds_fasta_file = os.path.join(outdir, sampleTag+'.scaffolds.fasta')
         scaffolds_count, scaffolds_max_len = filter_fa_by_len(scaffolds_fasta, scaffolds_fasta_file, name=sampleTag)
         logging.info(f'scaffolds {scaffolds_count} maxLen {scaffolds_max_len}')
@@ -163,7 +182,7 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', fastqc=None, pacb
             except Exception as e:
                 logging.error(f'Fastq_Assemble checkM {e}')
             try:
-                bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq_list, scaffolds_fasta_file, outdir, threads)
+                bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq_list[0], scaffolds_fasta_file, outdir, threads)
                 if bwa_align_out == 0:
                     out_file_list['file'].append(gc_cover_png)
                     out_file_list['file'].append(genome_info_file)
@@ -197,7 +216,10 @@ if __name__ == '__main__':
         cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-i', '--input', nargs='+', action='append', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-pacbio', '--pacbio', action='append', help='pacbio fastq file')
+    # parser.add_argument('-pacbioccs', '--pacbioccs', action='append', help='pacbio ccs fastq file')
+    parser.add_argument('-nanopore', '--nanopore', action='append', help='nanopore fastq file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for fastqc')
@@ -220,23 +242,33 @@ if __name__ == '__main__':
     try:
         # fq1 = args.input[0]
         # fq2 = args.input[1]
-        fq_list = args.input
+        fq_list_total = args.input
+        fq_cor_list_total = []
+
         if not args.Nqc:
+            s = f'Fastqc\tR\t'
+            write_status(status_report, s)
+            # for fq_list in fq_list_total:
+            fq_list = fq_list_total[0]
             try:
                 ## Fastqc
-                s = f'Fastqc\tR\t'
-                write_status(status_report, s)
-                fq_cor_list, out_file_list_tmp = Fastq_QC.Fastq_QC(fq_list, tmp_dir,threads=args.threads)
-                copy_file(out_file_list_tmp['file'], outdir)
+                fq_cor_list, out_file_list_tmp = Fastq_QC.Fastq_QC(fq_list, tmp_dir, threads=args.threads)
                 with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                     json.dump(out_file_list_tmp['json'], H, indent=2)
                 s = f'Fastqc\tD\t'
                 # fq1 = fq_cor_1
                 # fq2 = fq_cor_2
-                fq_list = fq_cor_list
+                # fq_list = fq_cor_list
+                fq_cor_list_total.append(fq_cor_list)
+                fq_cor_list_total.extend(fq_list_total[1:])
             except Exception as e:
                 logging.error(f'Fastqc {e}')
                 s = f'Fastqc\tE\t'
+
+            try:
+                copy_file(out_file_list_tmp['file'], outdir)
+            except Exception as e:
+                logging.error(f'copyfile {e}')
             try:
                 post_url(taskID, 'Fastqc')
                 write_status(status_report, s)
@@ -248,7 +280,12 @@ if __name__ == '__main__':
         try:
             s = f'Assembly\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(fq_list, tmp_dir, args.threads, sampleTag=args.name)
+            # out_file_list_tmp = Fastq_Assemble(fq_list, tmp_dir, args.threads, sampleTag=args.name)
+            logging.info(f'GII data: {fq_cor_list_total}')
+            logging.info(f'GIII pacbio: {args.pacbio}')
+            logging.info(f'GIII nanopore: {args.nanopore}')
+
+            out_file_list_tmp = Fastq_Assemble(fq_cor_list_total, tmp_dir, args.threads, sampleTag=args.name, pacbio=args.pacbio, nanopore=args.nanopore)
             scaffolds_fasta_file = out_file_list_tmp['file'][-1]
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
@@ -264,7 +301,7 @@ if __name__ == '__main__':
                 post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
             except Exception as e:
                 logging.error(f'post_url getTaskRunningStatus {e}')
-            # post_url(taskID, 'Assembly')
+            post_url(taskID, 'Assembly')
         except Exception as e:
             logging.error(f'Assembly status {e}')
 

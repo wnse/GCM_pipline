@@ -36,12 +36,14 @@ if __name__ == '__main__':
         cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', nargs='+', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-i', '--input', nargs='+', action='append', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-pacbio', '--pacbio', action='append', help='pacbio fastq file')
+    parser.add_argument('-nanopore', '--nanopore', action='append', help='nanopore fastq file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for analysis')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
-    parser.add_argument('-type', '--type', default='fastqPE', choices=['fqPE', 'fa'], help='data type for analysis')
+    parser.add_argument('-type', '--type', default='fastqPE', choices=['fastqPE', 'fa'], help='data type for analysis')
     parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
                         help='16S database, pre blastn index')
     parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
@@ -94,15 +96,20 @@ if __name__ == '__main__':
     fq_cor_list = []
     if args.type == 'fastqPE':
         fq_cor_1, fq_cor_2 = ('', '')
+        fq_list_total = args.input
+        fq_cor_list_total = []
+        fq_list = fq_list_total[0]
         try:
             ## Fastqc
             s = f'Fastqc\tR\t'
             write_status(status_report, s)
-            fq_cor_list, out_file_list_tmp = Fastq_QC(args.input, tmp_dir, threads=args.threads)
+            fq_cor_list, out_file_list_tmp = Fastq_QC(fq_list, tmp_dir, threads=args.threads)
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                 json.dump(out_file_list_tmp['json'], H, indent=2)
             s = f'Fastqc\tD\t'
+            fq_cor_list_total.append(fq_cor_list)
+            fq_cor_list_total.extend(fq_list_total[1:])
         except Exception as e:
             logging.error(f'Fastqc {e}')
             s = f'Fastqc\tE\t'
@@ -114,14 +121,17 @@ if __name__ == '__main__':
 
         ## Assembly
         scaffolds_fasta_file = ''
-        if fq_cor_list:
-            logging.info(f'{fq_cor_list}')
+        if fq_cor_list_total:
+            logging.info(f'{fq_cor_list_total}')
         else:
-            fq_cor_list = args.input
+            fq_cor_list_total = args.input
+        logging.info(f'GII data: {fq_cor_list_total}')
+        logging.info(f'GIII pacbio: {args.pacbio}')
+        logging.info(f'GIII nanopore: {args.nanopore}')
         try:
             s = f'Assembly\tR\t'
             write_status(status_report, s)
-            out_file_list_tmp = Fastq_Assemble(fq_cor_list, tmp_dir, args.threads, sampleTag=args.name, fastqc=1)
+            out_file_list_tmp = Fastq_Assemble(fq_cor_list_total, tmp_dir, args.threads, sampleTag=args.name, pacbio=args.pacbio, nanopore=args.nanopore, fastqc=1)
             scaffolds_fasta_file = out_file_list_tmp['file'][-1]
             copy_file(out_file_list_tmp['file'], outdir)
             with open(os.path.join(outdir, 'Assembly.json'), 'w') as H:
@@ -137,7 +147,7 @@ if __name__ == '__main__':
             logging.error(f'Assembly status {e}')
 
     if args.type == 'fa':
-        scaffolds_fasta_file = args.input[0]
+        scaffolds_fasta_file = args.input[0][0]
     species = None
     faa_file = None
     if scaffolds_fasta_file:
