@@ -11,6 +11,10 @@ python /Bio/script/GCM_pipline.py -i {fastq1} {fastq2} -o {outdir} -n {name} -tI
 python /Bio/script/Fastq_Assemble.py -i {fastq1} {fastq2} -o {outdir} -n {name} -tID {taskID}
 
 ## 增加的命令
+## 增加的命令
+python /Bio/script/GCM_pipline.py -i {fastq1} {fastq2} -i {fastq} -o {outdir} -n {name} -tID {taskID} -pacbio {pacbio_fq_or_fa} -nanopore {nanopore_fq}
+
+
 python /Bio/script/Fastq_Assemble.py -i {fastq1} {fastq2} -i {fastq} -o {outdir} -n {name} -tID {taskID} -pacbio {pacbio_fq_or_fa} -nanopore {nanopore_fq}
 
 python /Bio/script/Fastq_Assemble.py -i {fastq1} {fastq2} -i {fastq} -o {outdir} -n {name} -tID {taskID} -pacbio {pacbio_fq_or_fa} -nanopore {nanopore_fq}

@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -70,13 +71,19 @@ def fasta2gcCover(fa, genomecov_file, outfile='test_gc_cover.png', winsize=500, 
     if total_gc_ratio:
         total_gc_ratio_avg = sum(total_gc_ratio)/len(total_gc_ratio)
         if len_list:
+            pos = sorted(len_list, reverse=True)
+            n50 = pos[np.where(np.array(pos).cumsum() > np.array(pos).sum()/2)[0][0]]
+            n75 = pos[np.where(np.array(pos).cumsum() > np.array(pos).sum()*3/4)[0][0]]
+
             df = pd.DataFrame(len_list).describe()
             df.loc['genome_size'] = sum(len_list)
             df.loc['GC'] = total_gc_ratio_avg
             df.loc['cover_depth']  = sum(cover_avg)/len(cover_avg)
             df.loc['n_number'] = n_num
             df = df.rename({'count':'scaffolds_num', 'mean':'len_avg', 'std':'len_std', 'min':'len_min',
-                            'max':'len_max', '25%':'N25', '50%':'N50', '75%':'N75'})
+                            'max':'len_max', '25%':'middle25', '50%':'middle', '75%':'middle75'})
+            df['N50'] = n50
+            df['N75'] = n75
             df.to_csv(genome_info, header=None)
     return genome_info
 
