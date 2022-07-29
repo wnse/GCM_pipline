@@ -152,16 +152,22 @@ def spades_docker(outdir, PE_fq_list, SE_fq_list=[], pacbio_list=None, nanopore_
     pe_input = ''
     se_input = ''
     if PE_fq_list:
-        for pe_fq  in PE_fq_list:
-            if len(pe_fq) == 2:
-                if os.path.isfile(pe_fq[0]) and os.path.isfile(pe_fq[1]):
-                    pe_input += f' --pe1-1 {pe_fq[0]} --pe1-2 {pe_fq[1]}'
-                    all_data_path = all_data_path + pe_fq
-                else:
-                    logging.error(f'fastq file path not correct: {pe_fq}')
+        if len(PE_fq_list) == 1:
+            pe_fq = PE_fq_list[0]
+            if os.path.isfile(pe_fq[0]) and os.path.isfile(pe_fq[1]):
+                pe_input += f' -1 {pe_fq[0]} -2 {pe_fq[1]}'
+                all_data_path = all_data_path + pe_fq     
+        else: 
+            for pe_fq  in PE_fq_list:
+                if len(pe_fq) == 2:
+                    if os.path.isfile(pe_fq[0]) and os.path.isfile(pe_fq[1]):
+                        pe_input += f' --pe1-1 {pe_fq[0]} --pe1-2 {pe_fq[1]}'
+                        all_data_path = all_data_path + pe_fq
+                    else:
+                        logging.error(f'fastq file path not correct: {pe_fq}')
 
-            else:
-                logging.error(f'fastq file number not correct: {pe_fq}')
+                else:
+                    logging.error(f'fastq file number not correct: {pe_fq}')
         
     if SE_fq_list:
         for se_fq in SE_fq_list:

@@ -82,8 +82,8 @@ def fasta2gcCover(fa, genomecov_file, outfile='test_gc_cover.png', winsize=500, 
             df.loc['n_number'] = n_num
             df = df.rename({'count':'scaffolds_num', 'mean':'len_avg', 'std':'len_std', 'min':'len_min',
                             'max':'len_max', '25%':'middle25', '50%':'middle', '75%':'middle75'})
-            df['N50'] = n50
-            df['N75'] = n75
+            df.loc['N50'] = n50
+            df.loc['N75'] = n75
             df.to_csv(genome_info, header=None)
     return genome_info
 

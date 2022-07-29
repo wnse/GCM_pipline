@@ -32,4 +32,17 @@ Brucella,/Bio/cgMLST_DB/Brucella/database/schema_seed/,,/Bio/cgMLST_DB/Brucella/
 Citrobacter,/Bio/cgMLST_DB/Citrobacter/database/schema_seed/,,/Bio/cgMLST_DB/Citrobacter/ref/cgMLST_base_0.99.tsv
 Cronobacter,/Bio/cgMLST_DB/Cronobacter/database/schema_seed/,,/Bio/cgMLST_DB/Cronobacter/ref/cgMLST_base_0.99.tsv
 Shigella,/Bio/cgMLST_DB/Shigella/database/schema_seed/,,/Bio/cgMLST_DB/Shigella/ref/cgMLST_base_0.99.tsv
-
+Bacillus cereus,/Bio/cgMLST_DB/Bacillus_cereus/database/schema_seed,/Bio/cgMLST_DB/Bacillus_cereus/ref/GCF_018309165.1_TrainedFile.trn,/Bio/cgMLST_DB/Bacillus_cereus/ref/cgMLST.tsv
+Bacteroides fragilis,/Bio/cgMLST_DB/Bacteroides_fragilis/database/schema_seed,/Bio/cgMLST_DB/Bacteroides_fragilis/ref/GCF_016889925.1_TrainedFile.trn,/Bio/cgMLST_DB/Bacteroides_fragilis/ref/cgMLST.tsv
+Campylobacter coli,/Bio/cgMLST_DB/Campylobacter_coli/database/schema_seed,/Bio/cgMLST_DB/Campylobacter_coli/ref/GCF_009730395.1_TrainedFile.trn,/Bio/cgMLST_DB/Campylobacter_coli/ref/cgMLST.tsv
+Clostridium,/Bio/cgMLST_DB/Clostridium/database/schema_seed,,/Bio/cgMLST_DB/Clostridium/ref/cgMLST.tsv
+Escherichia coli,/Bio/cgMLST_DB/Escherichia_coli/database/schema_seed,/Bio/cgMLST_DB/Escherichia_coli/ref/GCF_000005845.2_TrainedFile.trn,/Bio/cgMLST_DB/Escherichia_coli/ref/cgMLST.tsv
+Francisella tularensis,/Bio/cgMLST_DB/Francisella_tularensis/database/schema_seed,/Bio/cgMLST_DB/Francisella_tularensis/ref/GCF_000008985.1_TrainedFile.trn,/Bio/cgMLST_DB/Francisella_tularensis/ref/cgMLST.tsv
+Klebsiella aerogenes,/Bio/cgMLST_DB/Klebsiella_aerogenes/database/schema_seed,/Bio/cgMLST_DB/Klebsiella_aerogenes/ref/GCF_007632255.1_TrainedFile.trn,/Bio/cgMLST_DB/Klebsiella_aerogenes/ref/cgMLST.tsv
+Neisseria gonorrhoeae,/Bio/cgMLST_DB/Neisseria_gonorrhoeae/database/schema_seed,/Bio/cgMLST_DB/Neisseria_gonorrhoeae/ref/GCF_013030075.1_TrainedFile.trn,/Bio/cgMLST_DB/Neisseria_gonorrhoeae/ref/cgMLST.tsv
+Serratia marcescens,/Bio/cgMLST_DB/Serratia_marcescens/database/schema_seed,/Bio/cgMLST_DB/Serratia_marcescens/ref/GCF_003516165.1_TrainedFile.trn,/Bio/cgMLST_DB/Serratia_marcescens/ref/cgMLST.tsv
+Shigella boydii,/Bio/cgMLST_DB/Shigella_boydii/database/schema_seed,/Bio/cgMLST_DB/Shigella_boydii/ref/GCF_001905915.1_TrainedFile.trn,/Bio/cgMLST_DB/Shigella_boydii/ref/cgMLST.tsv
+Shigella dysenteriae,/Bio/cgMLST_DB/Shigella_dysenteriae/database/schema_seed,/Bio/cgMLST_DB/Shigella_dysenteriae/ref/GCF_001932995.2_TrainedFile.trn,/Bio/cgMLST_DB/Shigella_dysenteriae/ref/cgMLST.tsv
+Shigella flexneri,/Bio/cgMLST_DB/Shigella_flexneri/database/schema_seed,/Bio/cgMLST_DB/Shigella_flexneri/ref/GCF_000006925.2_TrainedFile.trn,/Bio/cgMLST_DB/Shigella_flexneri/ref/cgMLST.tsv
+Shigella sp.,/Bio/cgMLST_DB/Shigella_sp./database/schema_seed,,/Bio/cgMLST_DB/Shigella_sp./ref/cgMLST.tsv
+Staphylococcus epidermidis,/Bio/cgMLST_DB/Staphylococcus_epidermidis/database/schema_seed,/Bio/cgMLST_DB/Staphylococcus_epidermidis/ref/GCF_006094375.1_TrainedFile.trn,/Bio/cgMLST_DB/Staphylococcus_epidermidis/ref/cgMLST.tsv
