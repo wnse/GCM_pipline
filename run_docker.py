@@ -141,6 +141,26 @@ def genomescope_docker(histo_file, outdir, read_length):
     return cmd, outfile, outpng
 
 
+
+def canu_docker(outdir, pacbio, nanopore):
+    all_data_path = [outdir]
+    canu_outdir = os.path.join(outdir,'canu_dir')
+    if pacbio:
+        all_data_path.append(pacbio)
+        x_para = f'-pacbio {pacbio}'
+    elif nanopore:
+        all_data_path.append(pacbio)
+        x_para = f'-nanopore {nanopore}'
+    logfile = os.path.join(outdir, "canu.log")
+    img_name = 'staphb/canu:latest'
+    cmd = (f'canu -p canu -d {canu_outdir} genomeSize=4m minInputCoverage=0 stopOnLowCoverage=0 {x_para} >{logfile} 2>&1')
+    cmd_out =  run_docker(img_name, all_data_path, cmd)
+    outfile = os.path.join(canu_outdir, 'canu.contigs.fasta')
+    if cmd_out:
+        return cmd, 0
+    return cmd, outfile
+
+
 # def spades_docker(PE_fq_list=None, SE_fq = None, outdir='./', threads=1, k_mer=[21,33,55]):
 def spades_docker(outdir, PE_fq_list, SE_fq_list=[], pacbio_list=None, nanopore_list=None, threads=1, k_mer=[21,33,55]):
     k_mer_str = 'spades_' + '_'.join([str(i) for i in k_mer])
@@ -188,7 +208,7 @@ def spades_docker(outdir, PE_fq_list, SE_fq_list=[], pacbio_list=None, nanopore_
     if nanopore_list:
         for fq in nanopore_list:
             if os.path.isfile(fq):
-                pacbio_fq += f' --nanopore {fq}'
+                nanopore_fq += f' --nanopore {fq}'
                 all_data_path = all_data_path + [fq]
             else:
                 logging.error(f'fastq file path not correct: {fq}')
@@ -212,27 +232,46 @@ def spades_docker(outdir, PE_fq_list, SE_fq_list=[], pacbio_list=None, nanopore_
         return cmd_out, 0
     return 0, 0
 
-def bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads=1):
-    all_data_path = fq_list + [scaffolds_fasta, outdir]
+def bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads=1, nanopore=None, pacbio=None):
     bwa_align_dir = os.path.join(outdir, 'bwa_align_dir')
     mkdir(bwa_align_dir)
     out_bam_file = os.path.join(bwa_align_dir, 'align.sorted.bam')
     out_genomecov_file = os.path.join(bwa_align_dir, 'align.genomecov.depth.txt')
     out_flagstat_file = os.path.join(bwa_align_dir, 'align.flagstat.txt')
     log_file = os.path.join(outdir, 'bwa_align.log')
+    sam_file = out_bam_file + ".sam"
+
+    if fq_list:
+        all_data_path = fq_list + [scaffolds_fasta, outdir]
+        img_name = 'registry.servicemgr.bjwsws:5000/bwa:latest'
+        cmd = (f'/BioBin/bwa/bwa index {scaffolds_fasta} >>{log_file} 2>>{log_file}')
+        cmd_out = run_docker(img_name, all_data_path, cmd)
+        if cmd_out:
+            return "bwa index error"
+
+        cmd = (f'/BioBin/bwa/bwa mem {scaffolds_fasta} {" ".join(fq_list)} -t {threads} > {sam_file} 2>>{log_file}')
+        cmd_out = run_docker(img_name, all_data_path, cmd)
+        if cmd_out:
+            return "bwa mem error"
+    elif nanopore or pacbio:
+        data = None
+        if pacbio:
+            x_para = 'map-pb'
+            data = pacbio
+        if nanopore:
+            x_para = 'map-ont'
+            data = nanopore
+
+        all_data_path = [data, scaffolds_fasta, outdir]
+        img_name = 'staphb/minimap2:latest'
+        cmd = (f'minimap2 -ax {x_para} {scaffolds_fasta} {data} -t {threads} -o {sam_file} 2>>{log_file}')
+        cmd_out = run_docker(img_name, all_data_path, cmd)
+        if cmd_out:
+            return "minimap2 error"
+    else:
+        return 'no data input'
 
     img_name = 'registry.servicemgr.bjwsws:5000/bwa:latest'
-    cmd = (f'/BioBin/bwa/bwa index {scaffolds_fasta} >>{log_file} 2>>{log_file}')
-    cmd_out = run_docker(img_name, all_data_path, cmd)
-    if cmd_out:
-        return "bwa index error"
-
-    sam_file = out_bam_file + ".sam"
-    cmd = (f'/BioBin/bwa/bwa mem {scaffolds_fasta} {" ".join(fq_list)} -t {threads} > {sam_file} 2>>{log_file}')
-    cmd_out = run_docker(img_name, all_data_path, cmd)
-    if cmd_out:
-        return "bwa mem error"
-
     cmd = (f'/BioBin/samtools/samtools sort {sam_file} -o {out_bam_file} 2>>{log_file}')
     cmd_out = run_docker(img_name, all_data_path, cmd)
     if cmd_out:

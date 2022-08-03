@@ -27,6 +27,13 @@ def run_spades(outdir, pe_fq, se_fq, pacbio_clr, nanopore, threads):
     logging.info(scaffolds_fasta)
     return scaffolds_fasta
 
+def run_canu(outdir, pacbio, nanopore):
+    logging.info('canu')
+    spades_out, scaffolds_fasta = run_docker.canu_docker(outdir, pacbio, nanopore)
+    logging.info(spades_out)
+    logging.info(scaffolds_fasta)
+    return scaffolds_fasta
+
 def filter_fa_by_len(fa, outfile, cutoff=500, name='scaffolds'):
     filter_fa = []
     max_len = 0
@@ -48,12 +55,12 @@ def filter_fa_by_len(fa, outfile, cutoff=500, name='scaffolds'):
         logging.error(f'filter_fa_by_len {e}')
     return seq_count, max_len
 
-def run_bwa_align(fq_list, scaffolds_fasta, outdir, threads=1):
+def run_bwa_align(fq_list, scaffolds_fasta, outdir, threads=1, nanopore=None, pacbio=None):
     logging.info('bwa align')
-    cmd_out = run_docker.bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads)
+    cmd_out = run_docker.bwa_align_docker(fq_list, scaffolds_fasta, outdir, threads, nanopore=nanopore, pacbio=pacbio)
     if cmd_out[0]:
         logging.error(cmd_out)
-        return cmd_out, 0, 0
+        return cmd_out, 0, 0, 0
     bwa_align_out, out_bam_file, out_genomecov_file, out_flagstat_file = cmd_out
     logging.info(bwa_align_out)
     gc_cover_png = os.path.join(outdir, 'align.genomecov.depth.png')
@@ -139,21 +146,34 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', pacbio=None, nano
     # fq_cor_2 = os.path.join(outdir, 'musket_dir', 'trime_corrected.2.fastq') #test
 
     pe_fq, se_fq = [], []
+    nanopore_tmp = None 
+    pacbio_tmp = None 
     scaffolds_fasta = None
-    for fqs in fq_list:
-        if len(fqs) == 2:
-            pe_fq.append(fqs)
-        elif len(fqs) == 1:
-            se_fq.extend(fqs)
-        else:
-            logging.error(f'fastq file number not correct: {fqs}')
-    # if pacbio_ccs:
-    #     se_fq.extend(pacbio_ccs)
-    try:
-        scaffolds_fasta = run_spades(outdir, pe_fq, se_fq, pacbio, nanopore, threads=threads)
-        # logging.info(f'Assebly for {pe_fq} | {se_fq} | {pacbio} | {nanopore}')
-    except Exception as e:
-        logging.error(f'Fastq_Assemble Assembly {e}')
+    if fq_list and fq_list[0]:
+        for fqs in fq_list:
+            if len(fqs) == 2:
+                pe_fq.append(fqs)
+            elif len(fqs) == 1:
+                se_fq.extend(fqs)
+            else:
+                logging.error(f'fastq file number not correct: {fqs}')
+
+        # if pacbio_ccs:
+        #     se_fq.extend(pacbio_ccs)
+        try:
+            scaffolds_fasta = run_spades(outdir, pe_fq, se_fq, pacbio, nanopore, threads=threads)
+            # logging.info(f'Assebly for {pe_fq} | {se_fq} | {pacbio} | {nanopore}')
+        except Exception as e:
+            logging.error(f'Fastq_Assemble Assembly {e}')
+    elif not fq_list and (nanopore or pacbio):
+        if nanopore:
+            nanopore_tmp = nanopore[0]
+        if pacbio:
+            pacbio_tmp = pacbio[0]
+        try:
+            scaffolds_fasta = run_canu(outdir, pacbio_tmp, nanopore_tmp)
+        except Exception as e:
+            logging.error(f'canu Assemble Assembly {e}')        
 
     # if fq_cor_1 and fq_cor_2 and pacbio_ccs:
     #     scaffolds_fasta = run_spades(fq_list, pacbio_fq, outdir, threads=threads)
@@ -182,7 +202,10 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', pacbio=None, nano
             except Exception as e:
                 logging.error(f'Fastq_Assemble checkM {e}')
             try:
-                bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq_list[0], scaffolds_fasta_file, outdir, threads)
+                if fq_list and fq_list[0]:
+                    bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(fq_list[0], scaffolds_fasta_file, outdir, threads)
+                elif nanopore or pacbio:
+                    bwa_align_out, out_bam_file, gc_cover_png, genome_info_file = run_bwa_align(None, scaffolds_fasta_file, outdir, threads, nanopore_tmp, pacbio_tmp)
                 if bwa_align_out == 0:
                     out_file_list['file'].append(gc_cover_png)
                     out_file_list['file'].append(genome_info_file)
@@ -216,7 +239,7 @@ if __name__ == '__main__':
         cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', nargs='+', action='append', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-i', '--input', nargs='+', action='append', help='R1 fastq file, R2 fastq file')
     parser.add_argument('-pacbio', '--pacbio', action='append', help='pacbio fastq file')
     # parser.add_argument('-pacbioccs', '--pacbioccs', action='append', help='pacbio ccs fastq file')
     parser.add_argument('-nanopore', '--nanopore', action='append', help='nanopore fastq file')
@@ -249,22 +272,28 @@ if __name__ == '__main__':
             s = f'Fastqc\tR\t'
             write_status(status_report, s)
             # for fq_list in fq_list_total:
-            fq_list = fq_list_total[0]
+
             try:
                 ## Fastqc
-                fq_cor_list, out_file_list_tmp = Fastq_QC.Fastq_QC(fq_list, tmp_dir, threads=args.threads)
+                if fq_list_total and fq_list_total[0]:
+                    fq_list = fq_list_total[0]
+                    fq_cor_list, out_file_list_tmp = Fastq_QC.Fastq_QC(fq_list, tmp_dir, threads=args.threads)
+                    fq_cor_list_total.append(fq_cor_list)
+                    fq_cor_list_total.extend(fq_list_total[1:])
+                else:
+                    fq_cor_list = []
+                    out_file_list_tmp = {}
+                    out_file_list_tmp['json'] = {}
+                    out_file_list_tmp['file'] = {}
                 with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                     json.dump(out_file_list_tmp['json'], H, indent=2)
                 s = f'Fastqc\tD\t'
                 # fq1 = fq_cor_1
                 # fq2 = fq_cor_2
                 # fq_list = fq_cor_list
-                fq_cor_list_total.append(fq_cor_list)
-                fq_cor_list_total.extend(fq_list_total[1:])
             except Exception as e:
                 logging.error(f'Fastqc {e}')
                 s = f'Fastqc\tE\t'
-
             try:
                 copy_file(out_file_list_tmp['file'], outdir)
             except Exception as e:
@@ -301,7 +330,6 @@ if __name__ == '__main__':
                 post_url(taskID, '2', 'http://localhost/task/getTaskRunningStatus/')
             except Exception as e:
                 logging.error(f'post_url getTaskRunningStatus {e}')
-            post_url(taskID, 'Assembly')
         except Exception as e:
             logging.error(f'Assembly status {e}')
 
