@@ -165,7 +165,7 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', pacbio=None, nano
             # logging.info(f'Assebly for {pe_fq} | {se_fq} | {pacbio} | {nanopore}')
         except Exception as e:
             logging.error(f'Fastq_Assemble Assembly {e}')
-    elif not fq_list and (nanopore or pacbio):
+    elif (not fq_list) and nanopore or pacbio:
         if nanopore:
             nanopore_tmp = nanopore[0]
         if pacbio:
@@ -212,7 +212,7 @@ def Fastq_Assemble(fq_list, outdir, threads, sampleTag='test', pacbio=None, nano
                     df_tmp = pd.read_csv(genome_info_file, header=None, index_col=0)[1].astype(str).to_dict()
                     out_file_list['json'].update({'genome_info_summary':df_tmp})
                     out_file_list['json'].update({'gc_cover_png':os.path.split(gc_cover_png)[1]})
-                    if len(fq_list) == 2:
+                    if fq_list and (len(fq_list[0]) == 2):
                         try:
                             picard_CIAM_out, inser_size, insert_size_pdf = run_picard_CIAM(out_bam_file, outdir)
                             out_file_list['file'].append(insert_size_pdf)

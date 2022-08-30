@@ -1,27 +1,27 @@
 {
     "GeneAnnoDB":
     {
-        "pfam": "/Bio/functional_DB/pfam/",
-        "MetaCyc": "/Bio/functional_DB/metacyc/metacyc.dmnd",
-        "kegg": "/Bio/functional_DB/KEGG/kegg-prokaryotes.dmnd",
-        "cog": "/Bio/functional_DB/cog/cog.prot2003-2014.dmnd",
-        "NR":"/Bio/functional_DB/nr/nr.dmnd",
-        "cazy": "/Bio/functional_DB/CAZy/CAZy.dmnd",
-        "PHI": "/Bio/functional_DB/PHI/phi45.dmnd",
-        "SwissProt": "/Bio/functional_DB/uniprotkb/uniprot_swissprot.dmnd"
+        "pfam": "/Bio/database/GCM/pfam/",
+        "MetaCyc": "/Bio/database/GCM/metacyc/metacyc.dmnd",
+        "kegg": "/Bio/database/GCM/KEGG/kegg-prokaryotes.dmnd",
+        "cog": "/Bio/database/GCM/cog/cog.prot2003-2014.dmnd",
+        "NR":"/Bio/database/GCM/nr/nr.dmnd",
+        "cazy": "/Bio/database/GCM/CAZy/CAZy.dmnd",
+        "PHI": "/Bio/database/GCM/PHI/phi45.dmnd",
+        "SwissProt": "/Bio/database/GCM/uniprotkb/uniprot_swissprot.dmnd"
     },
     "GeneAnnoInfo":
     {
-        "kegg": "/Bio/functional_DB/KEGG/kegg-prokaryotes.ref",
-        "cog": "/Bio/functional_DB/cog/cog2003-2014.csv /Bio/functional_DB/cog/classification_cog_new.txt",
-        "NR": "/Bio/functional_DB/nr/nr_taxo",
-        "MetaCyc": "/Bio/functional_DB/metacyc/metacyc.ref",
-        "cazy": "/Bio/functional_DB/CAZy/CAZy.info",
-        "SwissProt": "/Bio/functional_DB/uniprotkb/uniprot_swissprot.ref",
-        "PHI": "/Bio/functional_DB/PHI/phi45.info"
+        "kegg": "/Bio/database/GCM/KEGG/kegg-prokaryotes.ref",
+        "cog": "/Bio/database/GCM/cog/cog2003-2014.csv /Bio/database/GCM/cog/classification_cog_new.txt",
+        "NR": "/Bio/database/GCM/nr/nr_taxo",
+        "MetaCyc": "/Bio/database/GCM/metacyc/metacyc.ref",
+        "cazy": "/Bio/database/GCM/CAZy/CAZy.info",
+        "SwissProt": "/Bio/database/GCM/uniprotkb/uniprot_swissprot.ref",
+        "PHI": "/Bio/database/GCM/PHI/phi45.info"
     },
     "FactorsDB":
     {
-        "VFDB": "/Bio/ARG_DB/VFDB/VFDB/VFDB.dmnd /Bio/ARG_DB/VFDB/VFDB/VFDB_setB_pro.fas"
+        "VFDB": "/Bio/database/GCM/VFDB/VFDB.dmnd /Bio/database/GCM/VFDB/VFDB_setB_pro.fas"
     }
 }

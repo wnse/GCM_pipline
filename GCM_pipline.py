@@ -36,7 +36,7 @@ if __name__ == '__main__':
         cpu_num = cpu_num - 2
     bin_dir = os.path.split(os.path.realpath(__file__))[0]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', nargs='+', action='append', required=True, help='R1 fastq file, R2 fastq file')
+    parser.add_argument('-i', '--input', nargs='+', action='append', help='R1 fastq file, R2 fastq file')
     parser.add_argument('-pacbio', '--pacbio', action='append', help='pacbio fastq file')
     parser.add_argument('-nanopore', '--nanopore', action='append', help='nanopore fastq file')
     parser.add_argument('-o', '--outdir', default='./', help='output dir')
@@ -44,15 +44,15 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads for analysis')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
     parser.add_argument('-type', '--type', default='fastqPE', choices=['fastqPE', 'fa'], help='data type for analysis')
-    parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
+    parser.add_argument('-d16S', '--db_16S', default='/Bio/database/GCM/tax_DB/database/best.16s',
                         help='16S database, pre blastn index')
-    parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
+    parser.add_argument('-i16S', '--info_16S', default='/Bio/database/GCM/tax_DB/database/16sdb.info_temp',
                         help='16S database taxonomy info')
-    parser.add_argument('-dg', '--db_genome', default='/Bio/tax-20200810_DB/database/genome.msh',
+    parser.add_argument('-dg', '--db_genome', default='/Bio/database/GCM/tax_DB/database/genome.msh',
                         help='genome database, mash index')
-    parser.add_argument('-ig', '--info_genome', default='/Bio/tax-20200810_DB/database/all.genome.best.info.final',
+    parser.add_argument('-ig', '--info_genome', default='/Bio/database/GCM/tax_DB/database/all.genome.best.info.final',
                         help='genome database taxonomy info')
-    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
+    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/database/GCM/tax_DB/fasta',
                         help='genome database fasta file dir')
     parser.add_argument('-con_db_path', '--con_db_path', default=f'{os.path.join(bin_dir, "conf_DB_path.json")}',
                         help='conf_DB_path.json genome database path info')
@@ -98,18 +98,26 @@ if __name__ == '__main__':
         fq_cor_1, fq_cor_2 = ('', '')
         fq_list_total = args.input
         fq_cor_list_total = []
-        fq_list = fq_list_total[0]
+        
         try:
             ## Fastqc
             s = f'Fastqc\tR\t'
             write_status(status_report, s)
-            fq_cor_list, out_file_list_tmp = Fastq_QC(fq_list, tmp_dir, threads=args.threads)
-            copy_file(out_file_list_tmp['file'], outdir)
+            if fq_list_total and fq_list_total[0]:
+                fq_list = fq_list_total[0]
+                fq_cor_list, out_file_list_tmp = Fastq_QC(fq_list, tmp_dir, threads=args.threads)
+                fq_cor_list_total.append(fq_cor_list)
+                fq_cor_list_total.extend(fq_list_total[1:])
+                copy_file(out_file_list_tmp['file'], outdir)
+            else:
+                fq_cor_list = []
+                out_file_list_tmp = {} 
+                out_file_list_tmp['json'] = {}
+                out_file_list_tmp['file'] = {}
             with open(os.path.join(outdir, 'Fastqc.json'), 'w') as H:
                 json.dump(out_file_list_tmp['json'], H, indent=2)
             s = f'Fastqc\tD\t'
-            fq_cor_list_total.append(fq_cor_list)
-            fq_cor_list_total.extend(fq_list_total[1:])
+
         except Exception as e:
             logging.error(f'Fastqc {e}')
             s = f'Fastqc\tE\t'

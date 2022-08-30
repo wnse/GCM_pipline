@@ -41,7 +41,8 @@ def get_depth(genomecov_file, seq_id, seq_len, winsize=500, step=20):
 def plot_gcCover(gc_ratio, cover_avg, outpng):
     df = pd.DataFrame([gc_ratio, cover_avg], index=['GC content(%)', 'Sequencing depth (x)']).T
     sns.jointplot(x='GC content(%)', y='Sequencing depth (x)', data=df,
-                  xlim=(20, 60), ylim=(0,200), alpha=0.2, s=10
+                  # xlim=(20, 60), ylim=(0,200), 
+                  alpha=0.2, s=10
                   )
     plt.savefig(outpng, dpi=300)
     plt.close()

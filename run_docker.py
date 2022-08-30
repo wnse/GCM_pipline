@@ -149,7 +149,7 @@ def canu_docker(outdir, pacbio, nanopore):
         all_data_path.append(pacbio)
         x_para = f'-pacbio {pacbio}'
     elif nanopore:
-        all_data_path.append(pacbio)
+        all_data_path.append(nanopore)
         x_para = f'-nanopore {nanopore}'
     logfile = os.path.join(outdir, "canu.log")
     img_name = 'staphb/canu:latest'

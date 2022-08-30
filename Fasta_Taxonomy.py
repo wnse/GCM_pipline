@@ -257,15 +257,15 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', default='test', help='sample name')
     parser.add_argument('-t', '--threads', default=cpu_num, help='threads')
     parser.add_argument('-tID', '--taskID', default='', help='task ID for report status')
-    parser.add_argument('-d16S', '--db_16S', default='/Bio/tax-20200810_DB/database/best.16s',
+    parser.add_argument('-d16S', '--db_16S', default='/Bio/database/GCM/tax_DB/database/best.16s',
                         help='16S database, pre blastn index')
-    parser.add_argument('-i16S', '--info_16S', default='/Bio/tax-20200810_DB/database/16sdb.info_temp',
+    parser.add_argument('-i16S', '--info_16S', default='/Bio/database/GCM/tax_DB/database/16sdb.info_temp',
                         help='16S database taxonomy info')
-    parser.add_argument('-dg', '--db_genome', default='/Bio/tax-20200810_DB/database/genome.msh',
+    parser.add_argument('-dg', '--db_genome', default='/Bio/database/GCM/tax_DB/database/genome.msh',
                         help='genome database, mash index')
-    parser.add_argument('-ig', '--info_genome', default='/Bio/tax-20200810_DB/database/all.genome.best.info.final',
+    parser.add_argument('-ig', '--info_genome', default='/Bio/database/GCM/tax_DB/database/all.genome.best.info.final',
                         help='genome database taxonomy info')
-    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/tax-20200810_DB/fasta',
+    parser.add_argument('-dgf', '--db_genome_fa', default='/Bio/database/GCM/tax_DB/fasta',
                         help='genome database fasta file dir')
     parser.add_argument('-debug', '--debug', action='store_true')
     args = parser.parse_args()
